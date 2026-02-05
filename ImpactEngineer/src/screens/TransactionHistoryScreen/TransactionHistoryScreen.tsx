@@ -3,73 +3,92 @@
  * Main screen displaying the user's transaction history with filtering capabilities
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
-  FlatList,
+  SectionList,
   RefreshControl,
   StyleSheet,
   Text,
   View,
-  ListRenderItemInfo,
+  SectionListRenderItemInfo,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  useSafeAreaInsets,
-  SafeAreaView,
-} from 'react-native-safe-area-context';
-import {
+  CategoryFilterBar,
   EmptyState,
   ErrorState,
   FilterBar,
   SearchBar,
+  SectionHeader,
+  SortBar,
+  TransactionDetailModal,
   TransactionItem,
   TransactionSkeleton,
   TRANSACTION_ITEM_HEIGHT,
 } from '../../components';
-import { useTransactions } from '../../hooks';
+import { useTransactionsRedux as useTransactions } from '../../hooks';
 import { colors, spacing, typography } from '../../theme';
-import { Transaction, FilterButtonType } from '../../types';
+import {
+  Transaction,
+  FilterButtonType,
+  SortOption,
+  CategoryFilter,
+  DateSection,
+} from '../../types';
 
 // Separator height for getItemLayout calculation
 const SEPARATOR_HEIGHT = 0;
 const ITEM_HEIGHT = TRANSACTION_ITEM_HEIGHT + spacing.xs * 2;
+const SECTION_HEADER_HEIGHT = 44;
 
 export function TransactionHistoryScreen() {
-  const insets = useSafeAreaInsets();
   const {
     transactions,
     isLoading,
     isRefreshing,
     error,
     filters,
+    sections,
+    categories,
     setTypeFilter,
     setSearchQuery,
+    setCategoryFilter,
+    setSortBy,
     refresh,
     retry,
   } = useTransactions();
 
+  // State for transaction detail modal
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+
   // Check if filters are active
   const isFiltered = useMemo(
-    () => filters.type !== 'all' || filters.searchQuery.length > 0,
+    () =>
+      filters.type !== 'all' ||
+      filters.searchQuery.length > 0 ||
+      filters.category !== 'all',
     [filters],
   );
 
   // Optimized key extractor
   const keyExtractor = useCallback((item: Transaction) => item.id, []);
 
-  // Optimized getItemLayout for fixed height items
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: ITEM_HEIGHT,
-      offset: ITEM_HEIGHT * index,
-      index,
-    }),
+  // Memoized render item
+  const renderItem = useCallback(
+    ({ item }: SectionListRenderItemInfo<Transaction, DateSection>) => (
+      <TransactionItem
+        transaction={item}
+        onPress={() => setSelectedTransaction(item)}
+      />
+    ),
     [],
   );
 
-  // Memoized render item
-  const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Transaction>) => (
-      <TransactionItem transaction={item} />
+  // Render section header
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: DateSection }) => (
+      <SectionHeader title={section.title} count={section.data.length} />
     ),
     [],
   );
@@ -82,7 +101,28 @@ export function TransactionHistoryScreen() {
     [setTypeFilter],
   );
 
-  // Render list header (search + filters)
+  // Handle sort change
+  const handleSortChange = useCallback(
+    (sort: SortOption) => {
+      setSortBy(sort);
+    },
+    [setSortBy],
+  );
+
+  // Handle category change
+  const handleCategoryChange = useCallback(
+    (category: CategoryFilter) => {
+      setCategoryFilter(category);
+    },
+    [setCategoryFilter],
+  );
+
+  // Handle modal close
+  const handleModalClose = useCallback(() => {
+    setSelectedTransaction(null);
+  }, []);
+
+  // Render list header (search + filters + sort)
   const ListHeader = useMemo(
     () => (
       <View>
@@ -90,6 +130,11 @@ export function TransactionHistoryScreen() {
         <FilterBar
           activeFilter={filters.type}
           onFilterChange={handleFilterChange}
+        />
+        <CategoryFilterBar
+          categories={categories}
+          activeCategory={filters.category || 'all'}
+          onCategoryChange={handleCategoryChange}
         />
         <View style={styles.resultsHeader}>
           <Text style={styles.resultsText}>
@@ -99,14 +144,23 @@ export function TransactionHistoryScreen() {
                   transactions.length !== 1 ? 's' : ''
                 }`}
           </Text>
+          <SortBar
+            activeSort={filters.sortBy || 'date_desc'}
+            onSortChange={handleSortChange}
+          />
         </View>
       </View>
     ),
     [
       filters.searchQuery,
       filters.type,
+      filters.category,
+      filters.sortBy,
+      categories,
       setSearchQuery,
       handleFilterChange,
+      handleCategoryChange,
+      handleSortChange,
       isLoading,
       transactions.length,
     ],
@@ -160,13 +214,14 @@ export function TransactionHistoryScreen() {
           <TransactionSkeleton count={6} />
         </View>
       ) : (
-        <FlatList
-          data={transactions}
+        <SectionList
+          sections={sections}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
-          getItemLayout={getItemLayout}
+          renderSectionHeader={renderSectionHeader}
           ListHeaderComponent={ListHeader}
           ListEmptyComponent={renderEmptyComponent}
+          stickySectionHeadersEnabled={false}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -177,7 +232,7 @@ export function TransactionHistoryScreen() {
           }
           contentContainerStyle={[
             styles.listContent,
-            transactions.length === 0 && styles.emptyListContent,
+            sections.length === 0 && styles.emptyListContent,
           ]}
           showsVerticalScrollIndicator={false}
           // Performance optimizations
@@ -188,6 +243,13 @@ export function TransactionHistoryScreen() {
           initialNumToRender={10}
         />
       )}
+
+      {/* Transaction Detail Modal */}
+      <TransactionDetailModal
+        transaction={selectedTransaction}
+        visible={selectedTransaction !== null}
+        onClose={handleModalClose}
+      />
     </View>
   );
 }
@@ -213,6 +275,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   resultsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,

@@ -1,0 +1,85 @@
+/**
+ * Transactions API
+ * RTK Query API for transaction data fetching with automatic caching
+ */
+
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { Transaction } from '../../types';
+import { mockTransactions } from '../../data/mockTransactions';
+
+// Simulated network delay
+const NETWORK_DELAY = 800;
+
+// Custom base query that uses mock data
+const mockBaseQuery = fetchBaseQuery({ baseUrl: '/' });
+
+// Mock query function
+const mockQueryFn = async (
+  _arg: void,
+  _api: any,
+  _extraOptions: any,
+  baseQuery: any,
+) => {
+  // Simulate network delay
+  await new Promise<void>(resolve => setTimeout(resolve, NETWORK_DELAY));
+
+  // 10% chance of error for testing
+  if (Math.random() < 0.1) {
+    return {
+      error: {
+        status: 500,
+        data: { message: 'Server error. Please try again.' },
+      },
+    };
+  }
+
+  // Return sorted transactions (most recent first)
+  const sortedTransactions = [...mockTransactions].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  return { data: sortedTransactions };
+};
+
+export const transactionsApi = createApi({
+  reducerPath: 'transactionsApi',
+  baseQuery: mockBaseQuery,
+  tagTypes: ['Transaction'],
+  endpoints: builder => ({
+    // Get all transactions
+    getTransactions: builder.query<Transaction[], void>({
+      queryFn: mockQueryFn,
+      providesTags: result =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Transaction' as const, id })),
+              { type: 'Transaction', id: 'LIST' },
+            ]
+          : [{ type: 'Transaction', id: 'LIST' }],
+    }),
+
+    // Get single transaction by ID
+    getTransactionById: builder.query<Transaction | undefined, string>({
+      queryFn: async (id, _api, _extraOptions, _baseQuery) => {
+        await new Promise<void>(resolve =>
+          setTimeout(resolve, NETWORK_DELAY / 2),
+        );
+        const transaction = mockTransactions.find(t => t.id === id);
+        if (!transaction) {
+          return {
+            error: {
+              status: 404,
+              data: { message: 'Transaction not found' },
+            },
+          };
+        }
+        return { data: transaction };
+      },
+      providesTags: (_result, _error, id) => [{ type: 'Transaction', id }],
+    }),
+  }),
+});
+
+// Export hooks for usage in components
+export const { useGetTransactionsQuery, useGetTransactionByIdQuery } =
+  transactionsApi;

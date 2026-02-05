@@ -2,10 +2,11 @@
  * TransactionItem Component
  * Displays a single transaction with merchant, amount, date, and category
  * Color-coded: green for income, red for expenses
+ * Supports tap to view transaction details
  */
 
 import React, { memo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { Transaction } from '../../types';
 import {
   colors,
@@ -16,22 +17,29 @@ import {
 } from '../../theme';
 import { formatCurrency } from '../../utils/currency';
 import { formatDate } from '../../utils/date';
+import { getCategoryIcon } from '../Icons';
 
 interface TransactionItemProps {
   transaction: Transaction;
+  onPress?: (transaction: Transaction) => void;
 }
 
 // Fixed height for getItemLayout optimization
 export const TRANSACTION_ITEM_HEIGHT = 80;
 
-function TransactionItemComponent({ transaction }: TransactionItemProps) {
+function TransactionItemComponent({
+  transaction,
+  onPress,
+}: TransactionItemProps) {
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
   const amountPrefix = isIncome ? '+' : '-';
+  const IconComponent = getCategoryIcon(transaction.category);
 
   return (
-    <View
-      style={styles.container}
+    <Pressable
+      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+      onPress={() => onPress?.(transaction)}
       accessible={true}
       accessibilityRole="button"
       accessibilityLabel={`${
@@ -39,8 +47,9 @@ function TransactionItemComponent({ transaction }: TransactionItemProps) {
       }, ${amountPrefix}${formatCurrency(Math.abs(transaction.amount))}, ${
         transaction.category
       }`}
+      accessibilityHint="Double tap to view transaction details"
     >
-      {/* Category Icon Placeholder */}
+      {/* Category Icon */}
       <View
         style={[
           styles.iconContainer,
@@ -51,9 +60,7 @@ function TransactionItemComponent({ transaction }: TransactionItemProps) {
           },
         ]}
       >
-        <Text style={[styles.iconText, { color: amountColor }]}>
-          {transaction.category.charAt(0).toUpperCase()}
-        </Text>
+        <IconComponent size={22} color={amountColor} />
       </View>
 
       {/* Transaction Details */}
@@ -78,7 +85,7 @@ function TransactionItemComponent({ transaction }: TransactionItemProps) {
           {formatCurrency(Math.abs(transaction.amount))}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -98,6 +105,10 @@ const styles = StyleSheet.create({
     height: TRANSACTION_ITEM_HEIGHT,
     ...shadows.sm,
   },
+  pressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
+  },
   iconContainer: {
     width: 44,
     height: 44,
@@ -105,10 +116,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
-  },
-  iconText: {
-    fontSize: typography.size.lg,
-    fontWeight: typography.weight.semibold,
   },
   detailsContainer: {
     flex: 1,

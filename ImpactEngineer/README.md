@@ -4,18 +4,30 @@ A React Native mobile application that displays a user's transaction history wit
 
 ![React Native](https://img.shields.io/badge/React_Native-0.83.1-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
+![Redux](https://img.shields.io/badge/Redux_Toolkit-2.x-purple)
 ![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey)
 
 ## 📱 Features
 
+### Core Features
+
 - **Transaction List**: View all recent transactions with merchant name, amount, date, and category
 - **Color-coded Amounts**: Green for income (+), red for expenses (-)
-- **Filter by Type**: Toggle between All, Income, and Expenses
+- **Filter by Type**: Toggle between All, Income, and Expenses with smooth animated transitions (react-native-reanimated)
 - **Search**: Debounced search by merchant name
 - **Pull-to-Refresh**: Swipe down to refresh transaction list
 - **Loading States**: Skeleton loading animation while fetching data
 - **Error Handling**: Error state with retry option
 - **Empty States**: Contextual empty states for no transactions or no filter matches
+
+### Enhanced Features
+
+- **SVG Category Icons**: Beautiful icons for each transaction category (Groceries, Transport, Entertainment, etc.)
+- **Transaction Detail Modal**: Tap any transaction to view full details in a slide-up modal
+- **Date Grouping**: Transactions grouped by Today, Yesterday, This Week, This Month, Earlier
+- **Sort Options**: Sort by date (newest/oldest) or amount (highest/lowest)
+- **Category Filter**: Filter transactions by category in addition to type filter
+- **Offline Support**: Redux Persist with AsyncStorage for offline data persistence
 
 ## 🏗️ Architecture
 
@@ -23,60 +35,100 @@ A React Native mobile application that displays a user's transaction history wit
 
 ```
 src/
-├── components/           # Reusable UI components
-│   ├── EmptyState/       # Empty state display
-│   ├── ErrorState/       # Error state with retry
-│   ├── FilterBar/        # Transaction type filter buttons
-│   ├── SearchBar/        # Merchant search input
-│   ├── TransactionItem/  # Single transaction row
+├── components/              # Reusable UI components
+│   ├── CategoryFilter/      # Category filter chips
+│   ├── EmptyState/          # Empty state display
+│   ├── ErrorState/          # Error state with retry
+│   ├── FilterBar/           # Transaction type filter buttons (animated)
+│   ├── Icons/               # SVG category icons
+│   ├── SearchBar/           # Merchant search input
+│   ├── SectionHeader/       # Date section headers
+│   ├── SortBar/             # Sort dropdown
+│   ├── TransactionDetailModal/ # Transaction detail modal
+│   ├── TransactionItem/     # Single transaction row
 │   └── TransactionSkeleton/ # Loading skeleton
-├── data/                 # Mock data
+├── data/                    # Mock data
 │   └── mockTransactions.ts
-├── hooks/                # Custom React hooks
-│   ├── useDebounce.ts    # Debounce value changes
-│   └── useTransactions.ts # Transaction data management
-├── screens/              # Screen components
+├── hooks/                   # Custom React hooks
+│   ├── useDebounce.ts       # Debounce value changes
+│   └── useTransactionsRedux.ts # RTK Query + Redux transaction management
+├── screens/                 # Screen components
 │   └── TransactionHistoryScreen/
-├── services/             # API/data services
-│   └── transactionService.ts
-├── theme/                # Design tokens
+├── store/                   # Redux store
+│   ├── api/                 # RTK Query APIs
+│   │   └── transactionsApi.ts # Transaction data fetching
+│   ├── slices/              # Redux slices
+│   │   └── transactionsSlice.ts # Filter state management
+│   ├── selectors/           # Memoized selectors
+│   ├── hooks.ts             # Typed useDispatch/useSelector
+│   └── index.ts             # Store configuration
+├── theme/                   # Design tokens
 │   └── index.ts
-├── types/                # TypeScript type definitions
+├── types/                   # TypeScript type definitions
 │   └── transaction.ts
-└── utils/                # Utility functions
-    ├── currency.ts       # Currency formatting
-    └── date.ts           # Date formatting
+└── utils/                   # Utility functions
+    ├── currency.ts          # Currency formatting
+    └── date.ts              # Date formatting
+```
+
+### State Management Architecture
+
+The app uses **Redux Toolkit with RTK Query** for robust state management:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Redux Store                          │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────┐    ┌─────────────────────────────┐ │
+│  │   transactionsApi   │    │        filters              │ │
+│  │   (RTK Query)       │    │   (Redux Slice)             │ │
+│  ├─────────────────────┤    ├─────────────────────────────┤ │
+│  │ • Automatic caching │    │ • type: 'all' | 'income'... │ │
+│  │ • Refetch on demand │    │ • searchQuery: string       │ │
+│  │ • Loading states    │    │ • category: CategoryFilter  │ │
+│  │ • Error handling    │    │ • sortBy: SortOption        │ │
+│  └─────────────────────┘    └─────────────────────────────┘ │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              Redux Persist (AsyncStorage)               │ │
+│  │              • Persists filters state                   │ │
+│  │              • Offline support                          │ │
+│  └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Architecture Decisions
 
-1. **Separation of Concerns**
+1. **Redux Toolkit + RTK Query**
+
+   - RTK Query handles data fetching with automatic caching and refetching
+   - Redux slices manage filter state separately from data
+   - Redux Persist with AsyncStorage for offline support
+   - Memoized selectors for efficient state access
+
+2. **Separation of Concerns**
 
    - Components are purely presentational where possible
-   - Business logic lives in custom hooks (`useTransactions`)
-   - Data fetching is abstracted in services (`transactionService`)
+   - Business logic lives in custom hooks (`useTransactionsRedux`)
+   - Data fetching is handled by RTK Query
    - Formatting utilities are extracted for reusability and testing
 
-2. **Performance Optimizations**
+3. **Performance Optimizations**
 
    - `React.memo()` on list items to prevent unnecessary re-renders
    - `useCallback` for all event handlers and render functions
-   - `useMemo` for computed values
-   - FlatList with `getItemLayout` for fixed-height items
-   - `removeClippedSubviews`, `windowSize`, and batch optimizations
-   - Debounced search (300ms) to reduce API calls
+   - `useMemo` for computed values (filtering/sorting)
+   - SectionList with `getItemLayout` for fixed-height items
+   - RTK Query's automatic caching reduces redundant fetches
+   - Debounced search (300ms) to reduce state updates
 
-3. **Mock Data Strategy**
+4. **Mock Data Strategy**
 
+   - RTK Query's `queryFn` provides mock data (no actual HTTP calls)
    - 28 realistic transactions with diverse categories
    - Simulated 800ms network delay
    - 10% random error rate for testing error states
-   - Sorted by date (most recent first)
-
-4. **State Management**
-   - Local state with hooks (no external state library needed for this scope)
-   - Centralized transaction state in `useTransactions` hook
-   - Clear separation of loading, error, and data states
+   - Easily swappable to real API by changing `queryFn` to `query`
 
 ## 🚀 Getting Started
 
@@ -130,37 +182,24 @@ Unit tests are provided for:
 
 ## ⚖️ Trade-offs & Decisions
 
-| Decision                        | Rationale                                                                           |
-| ------------------------------- | ----------------------------------------------------------------------------------- |
-| **No external state library**   | For this scope, React hooks are sufficient. Would add Redux/Zustand for larger apps |
-| **Emoji icons instead of SVGs** | Faster implementation; real app would use proper icon library                       |
-| **Simple in-memory mock**       | Focused on UI; could use MSW for more realistic API simulation                      |
-| **Skeleton over spinner**       | Better UX - gives users visual cues about content structure                         |
-| **Fixed item height**           | Enables `getItemLayout` optimization; acceptable for uniform transactions           |
+| Decision                                 | Rationale                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| **Redux Toolkit + RTK Query**            | Automatic caching, refetching, and loading states. Production-ready pattern |
+| **Redux Persist with AsyncStorage**      | Offline support with minimal config. Filters persist across app restarts    |
+| **SectionList for grouping**             | Native grouping with section headers, better than manual FlatList grouping  |
+| **SVG Icons with react-native-svg**      | Crisp icons at any size, proper accessibility support                       |
+| **RTK Query queryFn for mocking**        | No HTTP overhead; easily swap to real API by changing to query()            |
+| **Skeleton over spinner**                | Better UX - gives users visual cues about content structure                 |
+| **Local filtering/sorting (in useMemo)** | All data loaded upfront; enables instant filter response without API calls  |
 
 ## 🔮 What I'd Improve With More Time
 
-1. **Enhanced Features**
-
-   - Category icons with proper SVG assets
-   - Transaction detail screen on tap
-   - Date grouping (Today, Yesterday, This Week)
-   - Sort options (date, amount)
-   - Category filter in addition to type filter
-
-2. **Technical Improvements**
-
-   - Add react-native-reanimated for smooth filter transitions
-   - Implement MSW for more robust API mocking
-   - Add E2E tests with Detox
-   - Offline support with persistence
-   - Virtualized list with FlashList for larger datasets
-
-3. **UX Enhancements**
+2. **UX Enhancements**
    - Haptic feedback on interactions
    - Dark mode support
    - Swipe actions (delete, categorize)
    - Pull-up for quick stats summary
+   - Pagination for very large transaction lists
 
 ## 🤖 AI Tools Used
 

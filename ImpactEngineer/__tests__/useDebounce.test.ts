@@ -7,6 +7,10 @@ import { useDebounce } from '../src/hooks/useDebounce';
 
 jest.useFakeTimers();
 
+interface TestProps {
+  value: string;
+}
+
 describe('useDebounce', () => {
   it('returns initial value immediately', () => {
     const { result } = renderHook(() => useDebounce('initial', 300));
@@ -14,7 +18,7 @@ describe('useDebounce', () => {
   });
 
   it('debounces value changes', () => {
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<string, TestProps>(
       ({ value }) => useDebounce(value, 300),
       { initialProps: { value: 'initial' } },
     );
@@ -35,7 +39,7 @@ describe('useDebounce', () => {
   });
 
   it('resets timer on rapid changes', () => {
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<string, TestProps>(
       ({ value }) => useDebounce(value, 300),
       { initialProps: { value: 'initial' } },
     );

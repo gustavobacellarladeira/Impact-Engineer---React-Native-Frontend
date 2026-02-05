@@ -6,17 +6,40 @@
  */
 
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './src/store';
 import { TransactionHistoryScreen } from './src/screens';
+
+// Loading component for PersistGate
+const LoadingView = () => (
+  <View style={styles.loading}>
+    <ActivityIndicator size="large" color="#6366F1" />
+  </View>
+);
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <TransactionHistoryScreen />
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <PersistGate loading={<LoadingView />} persistor={persistor}>
+        <SafeAreaProvider>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+          <TransactionHistoryScreen />
+        </SafeAreaProvider>
+      </PersistGate>
+    </Provider>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+});
 
 export default App;

@@ -1,0 +1,239 @@
+/**
+ * Category Icons
+ * SVG icons for each transaction category
+ */
+
+import React from 'react';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
+
+interface IconProps {
+  size?: number;
+  color?: string;
+}
+
+// Food & Drink Icon (Fork and Knife)
+export const FoodIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M18 3v18M12 3v18M6 3v6c0 1.657 1.343 3 3 3h0c1.657 0 3-1.343 3-3V3"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Groceries Icon (Shopping Basket)
+export const GroceriesIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M5 7h14l-1.5 9.5a2 2 0 01-2 1.5H8.5a2 2 0 01-2-1.5L5 7z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M10 11v4M14 11v4"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Shopping Icon (Shopping Bag)
+export const ShoppingIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M6 6h12l1 14H5L6 6z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M9 6V4a3 3 0 013-3v0a3 3 0 013 3v2"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Income Icon (Arrow Down with line)
+export const IncomeIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 3v14M12 17l-5-5M12 17l5-5M5 21h14"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Bills Icon (Document with lines)
+export const BillsIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x={4}
+      y={3}
+      width={16}
+      height={18}
+      rx={2}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Path
+      d="M8 7h8M8 11h8M8 15h4"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+// Entertainment Icon (Play button)
+export const EntertainmentIcon = ({
+  size = 24,
+  color = '#64748B',
+}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx={12} cy={12} r={10} stroke={color} strokeWidth={2} />
+    <Path d="M10 8l6 4-6 4V8z" fill={color} />
+  </Svg>
+);
+
+// Transportation Icon (Car)
+export const TransportIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M5 11l1.5-4.5A2 2 0 018.4 5h7.2a2 2 0 011.9 1.5L19 11M5 11v6a1 1 0 001 1h1a1 1 0 001-1v-1h8v1a1 1 0 001 1h1a1 1 0 001-1v-6M5 11h14"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle cx={7.5} cy={14.5} r={1.5} fill={color} />
+    <Circle cx={16.5} cy={14.5} r={1.5} fill={color} />
+  </Svg>
+);
+
+// Health Icon (Heart with pulse)
+export const HealthIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 21s-8-5-8-11a5 5 0 0110 0 5 5 0 0110 0c0 6-8 11-8 11z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M8 12h2l1-2 2 4 1-2h2"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Electronics Icon (Laptop)
+export const ElectronicsIcon = ({
+  size = 24,
+  color = '#64748B',
+}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x={3}
+      y={4}
+      width={18}
+      height={12}
+      rx={2}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Path d="M2 20h20" stroke={color} strokeWidth={2} strokeLinecap="round" />
+  </Svg>
+);
+
+// Investments Icon (Chart going up)
+export const InvestmentsIcon = ({
+  size = 24,
+  color = '#64748B',
+}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M3 21l6-6 4 4 8-10"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M17 5h4v4"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Default/Other Icon (Circle with question mark)
+export const DefaultIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx={12} cy={12} r={10} stroke={color} strokeWidth={2} />
+    <Path
+      d="M9 9a3 3 0 115.12 2.12L12 13M12 17h.01"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Map category to icon
+export const getCategoryIcon = (category: string) => {
+  const categoryLower = category.toLowerCase();
+
+  if (categoryLower.includes('food') || categoryLower.includes('drink')) {
+    return FoodIcon;
+  }
+  if (categoryLower.includes('grocer')) {
+    return GroceriesIcon;
+  }
+  if (categoryLower.includes('shop')) {
+    return ShoppingIcon;
+  }
+  if (categoryLower.includes('income')) {
+    return IncomeIcon;
+  }
+  if (categoryLower.includes('bill') || categoryLower.includes('utilit')) {
+    return BillsIcon;
+  }
+  if (categoryLower.includes('entertainment')) {
+    return EntertainmentIcon;
+  }
+  if (categoryLower.includes('transport')) {
+    return TransportIcon;
+  }
+  if (categoryLower.includes('health') || categoryLower.includes('fitness')) {
+    return HealthIcon;
+  }
+  if (categoryLower.includes('electronic')) {
+    return ElectronicsIcon;
+  }
+  if (categoryLower.includes('invest')) {
+    return InvestmentsIcon;
+  }
+
+  return DefaultIcon;
+};
