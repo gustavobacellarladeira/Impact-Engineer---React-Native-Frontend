@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import App from '../App';
+import App from '../../App';
 
 // Use fake timers to prevent timer-related warnings
 jest.useFakeTimers();
