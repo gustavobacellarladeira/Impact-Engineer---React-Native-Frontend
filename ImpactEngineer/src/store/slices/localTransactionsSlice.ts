@@ -36,6 +36,10 @@ const localTransactionsSlice = createSlice({
     // Mark a transaction as deleted
     deleteTransaction: (state, action: PayloadAction<string>) => {
       const id = action.payload;
+      // Ensure recentlyDeletedLocalTransactions exists (migration safety)
+      if (!state.recentlyDeletedLocalTransactions) {
+        state.recentlyDeletedLocalTransactions = {};
+      }
       // If it's a locally created transaction, move it to recently deleted
       const localIndex = state.createdTransactions.findIndex(t => t.id === id);
       if (localIndex !== -1) {
@@ -56,6 +60,10 @@ const localTransactionsSlice = createSlice({
     // Undo a deletion
     undoDeleteTransaction: (state, action: PayloadAction<string>) => {
       const id = action.payload;
+      // Ensure recentlyDeletedLocalTransactions exists (migration safety)
+      if (!state.recentlyDeletedLocalTransactions) {
+        state.recentlyDeletedLocalTransactions = {};
+      }
       // Check if it was a local transaction
       const localTransaction = state.recentlyDeletedLocalTransactions[id];
       if (localTransaction) {
@@ -73,6 +81,10 @@ const localTransactionsSlice = createSlice({
 
     // Undo multiple deletions
     undoDeleteTransactions: (state, action: PayloadAction<string[]>) => {
+      // Ensure recentlyDeletedLocalTransactions exists (migration safety)
+      if (!state.recentlyDeletedLocalTransactions) {
+        state.recentlyDeletedLocalTransactions = {};
+      }
       action.payload.forEach(id => {
         // Check if it was a local transaction
         const localTransaction = state.recentlyDeletedLocalTransactions[id];
