@@ -285,6 +285,7 @@ export function useTransactionsRedux() {
 
   return {
     transactions,
+    allTransactions,
     sections,
     categories,
     filters,

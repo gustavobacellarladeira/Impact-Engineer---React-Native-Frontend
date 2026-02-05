@@ -13,12 +13,15 @@ interface LocalTransactionsState {
   deletedTransactionIds: string[];
   // Transactions that have been modified (keyed by ID)
   modifiedTransactions: Record<string, Partial<Transaction>>;
+  // Recently deleted local transactions (for undo) - keyed by ID
+  recentlyDeletedLocalTransactions: Record<string, Transaction>;
 }
 
 const initialState: LocalTransactionsState = {
   createdTransactions: [],
   deletedTransactionIds: [],
   modifiedTransactions: {},
+  recentlyDeletedLocalTransactions: {},
 };
 
 const localTransactionsSlice = createSlice({
@@ -33,9 +36,12 @@ const localTransactionsSlice = createSlice({
     // Mark a transaction as deleted
     deleteTransaction: (state, action: PayloadAction<string>) => {
       const id = action.payload;
-      // If it's a locally created transaction, just remove it
+      // If it's a locally created transaction, move it to recently deleted
       const localIndex = state.createdTransactions.findIndex(t => t.id === id);
       if (localIndex !== -1) {
+        // Save to recently deleted for undo
+        state.recentlyDeletedLocalTransactions[id] =
+          state.createdTransactions[localIndex];
         state.createdTransactions.splice(localIndex, 1);
       } else {
         // Otherwise mark it as deleted
@@ -50,20 +56,41 @@ const localTransactionsSlice = createSlice({
     // Undo a deletion
     undoDeleteTransaction: (state, action: PayloadAction<string>) => {
       const id = action.payload;
-      const index = state.deletedTransactionIds.indexOf(id);
-      if (index !== -1) {
-        state.deletedTransactionIds.splice(index, 1);
+      // Check if it was a local transaction
+      const localTransaction = state.recentlyDeletedLocalTransactions[id];
+      if (localTransaction) {
+        // Restore the local transaction
+        state.createdTransactions.unshift(localTransaction);
+        delete state.recentlyDeletedLocalTransactions[id];
+      } else {
+        // Remove from deleted IDs (mock transaction)
+        const index = state.deletedTransactionIds.indexOf(id);
+        if (index !== -1) {
+          state.deletedTransactionIds.splice(index, 1);
+        }
       }
     },
 
     // Undo multiple deletions
     undoDeleteTransactions: (state, action: PayloadAction<string[]>) => {
       action.payload.forEach(id => {
-        const index = state.deletedTransactionIds.indexOf(id);
-        if (index !== -1) {
-          state.deletedTransactionIds.splice(index, 1);
+        // Check if it was a local transaction
+        const localTransaction = state.recentlyDeletedLocalTransactions[id];
+        if (localTransaction) {
+          state.createdTransactions.unshift(localTransaction);
+          delete state.recentlyDeletedLocalTransactions[id];
+        } else {
+          const index = state.deletedTransactionIds.indexOf(id);
+          if (index !== -1) {
+            state.deletedTransactionIds.splice(index, 1);
+          }
         }
       });
+    },
+
+    // Clear old recently deleted transactions (cleanup)
+    clearRecentlyDeleted: state => {
+      state.recentlyDeletedLocalTransactions = {};
     },
 
     // Update a transaction's category
@@ -109,6 +136,7 @@ const localTransactionsSlice = createSlice({
       state.createdTransactions = [];
       state.deletedTransactionIds = [];
       state.modifiedTransactions = {};
+      state.recentlyDeletedLocalTransactions = {};
     },
   },
 });
@@ -118,6 +146,7 @@ export const {
   deleteTransaction,
   undoDeleteTransaction,
   undoDeleteTransactions,
+  clearRecentlyDeleted,
   updateTransactionCategory,
   updateTransaction,
   clearLocalTransactions,

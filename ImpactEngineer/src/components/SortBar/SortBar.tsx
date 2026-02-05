@@ -1,10 +1,18 @@
 /**
  * SortBar Component
  * Dropdown to sort transactions by date or amount
+ * With modern styling and animations
  */
 
 import React, { memo, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable, Modal } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  interpolate,
+} from 'react-native-reanimated';
 import { SortOption, SortOptionItem } from '../../types';
 import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography, shadows } from '../../theme';
@@ -22,9 +30,15 @@ const SORT_OPTIONS: SortOptionItem[] = [
   { key: 'amount_asc', label: 'Lowest Amount' },
 ];
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Animation values
+  const scale = useSharedValue(1);
+  const chevronRotation = useSharedValue(0);
 
   const activeLabel =
     SORT_OPTIONS.find(o => o.key === activeSort)?.label || 'Sort';
@@ -34,43 +48,80 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
       triggerSelection();
       onSortChange(sort);
       setModalVisible(false);
+      chevronRotation.value = withSpring(0);
     },
-    [onSortChange],
+    [onSortChange, chevronRotation],
   );
 
   const handleOpenModal = useCallback(() => {
     triggerLightImpact();
     setModalVisible(true);
-  }, []);
+    chevronRotation.value = withSpring(180);
+  }, [chevronRotation]);
+
+  const handleCloseModal = useCallback(() => {
+    setModalVisible(false);
+    chevronRotation.value = withSpring(0);
+  }, [chevronRotation]);
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.95);
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1);
+  }, [scale]);
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const animatedChevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${chevronRotation.value}deg` }],
+  }));
 
   return (
     <View style={styles.container}>
-      <Pressable
+      <AnimatedPressable
         style={[
           styles.sortButton,
-          { backgroundColor: colors.surface, borderColor: colors.border },
+          {
+            backgroundColor: colors.surfaceSecondary,
+            borderColor: colors.border,
+          },
+          animatedButtonStyle,
         ]}
         onPress={handleOpenModal}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         accessibilityRole="button"
         accessibilityLabel={`Sort by ${activeLabel}`}
       >
-        <Text style={styles.sortIcon}>↕️</Text>
+        <View
+          style={[
+            styles.sortIconContainer,
+            { backgroundColor: colors.primary + '15' },
+          ]}
+        >
+          <Text style={[styles.sortIcon, { color: colors.primary }]}>↕</Text>
+        </View>
         <Text style={[styles.sortText, { color: colors.textPrimary }]}>
           {activeLabel}
         </Text>
-        <Text style={[styles.chevron, { color: colors.textSecondary }]}>▼</Text>
-      </Pressable>
+        <Animated.View style={animatedChevronStyle}>
+          <Text style={[styles.chevron, { color: colors.textSecondary }]}>
+            ▼
+          </Text>
+        </Animated.View>
+      </AnimatedPressable>
 
       <Modal
         visible={modalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={handleCloseModal}
       >
-        <Pressable
-          style={styles.overlay}
-          onPress={() => setModalVisible(false)}
-        >
+        <Pressable style={styles.overlay} onPress={handleCloseModal}>
           <View style={[styles.dropdown, { backgroundColor: colors.surface }]}>
             <Text
               style={[styles.dropdownTitle, { color: colors.textSecondary }]}
@@ -121,18 +172,25 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
+    gap: spacing.sm,
+  },
+  sortIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sortIcon: {
     fontSize: typography.size.sm,
-    marginRight: spacing.xs,
   },
   sortText: {
     fontSize: typography.size.sm,
-    fontWeight: typography.weight.medium,
+    fontWeight: typography.weight.semibold,
   },
   chevron: {
     fontSize: 8,

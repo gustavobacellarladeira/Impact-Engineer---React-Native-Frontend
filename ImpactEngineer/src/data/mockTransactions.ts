@@ -2,9 +2,18 @@
  * Mock Transaction Data
  * Realistic transaction data for development and testing
  * Contains 25+ transactions with a mix of incomes and expenses
+ * Uses dynamic dates relative to "today" so filters work correctly
  */
 
 import { Transaction } from '../types';
+
+// Helper function to get date relative to today
+const getRelativeDate = (daysAgo: number, hours = 12, minutes = 0): string => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  date.setHours(hours, minutes, 0, 0);
+  return date.toISOString();
+};
 
 export const mockTransactions: Transaction[] = [
   // Income transactions
@@ -12,7 +21,7 @@ export const mockTransactions: Transaction[] = [
     id: '1',
     merchant: 'Direct Deposit - Gerald Inc',
     amount: 3500.0,
-    date: '2026-02-05T09:00:00.000Z',
+    date: getRelativeDate(0, 9, 0), // Today
     category: 'Income',
     type: 'income',
   },
@@ -20,7 +29,7 @@ export const mockTransactions: Transaction[] = [
     id: '2',
     merchant: 'Freelance Payment - Web Design',
     amount: 850.0,
-    date: '2026-02-03T14:30:00.000Z',
+    date: getRelativeDate(2, 14, 30), // 2 days ago
     category: 'Income',
     type: 'income',
   },
@@ -28,7 +37,7 @@ export const mockTransactions: Transaction[] = [
     id: '3',
     merchant: 'Venmo - John Smith',
     amount: 45.0,
-    date: '2026-02-01T18:20:00.000Z',
+    date: getRelativeDate(4, 18, 20), // 4 days ago
     category: 'Income',
     type: 'income',
   },
@@ -36,7 +45,7 @@ export const mockTransactions: Transaction[] = [
     id: '4',
     merchant: 'Tax Refund - IRS',
     amount: 1250.0,
-    date: '2026-01-28T10:00:00.000Z',
+    date: getRelativeDate(8, 10, 0), // 8 days ago
     category: 'Income',
     type: 'income',
   },
@@ -44,7 +53,7 @@ export const mockTransactions: Transaction[] = [
     id: '5',
     merchant: 'Dividend - Vanguard',
     amount: 127.5,
-    date: '2026-01-25T08:00:00.000Z',
+    date: getRelativeDate(11, 8, 0), // 11 days ago
     category: 'Investments',
     type: 'income',
   },
@@ -54,7 +63,7 @@ export const mockTransactions: Transaction[] = [
     id: '6',
     merchant: 'Starbucks',
     amount: -6.75,
-    date: '2026-02-05T07:30:00.000Z',
+    date: getRelativeDate(0, 7, 30), // Today
     category: 'Food & Drink',
     type: 'expense',
   },
@@ -62,7 +71,7 @@ export const mockTransactions: Transaction[] = [
     id: '7',
     merchant: 'Whole Foods Market',
     amount: -87.32,
-    date: '2026-02-04T16:45:00.000Z',
+    date: getRelativeDate(1, 16, 45), // 1 day ago
     category: 'Groceries',
     type: 'expense',
   },
@@ -70,7 +79,7 @@ export const mockTransactions: Transaction[] = [
     id: '8',
     merchant: 'Chipotle Mexican Grill',
     amount: -14.25,
-    date: '2026-02-04T12:30:00.000Z',
+    date: getRelativeDate(1, 12, 30), // 1 day ago
     category: 'Food & Drink',
     type: 'expense',
   },
@@ -78,7 +87,7 @@ export const mockTransactions: Transaction[] = [
     id: '9',
     merchant: 'DoorDash - Thai Kitchen',
     amount: -32.99,
-    date: '2026-02-03T19:00:00.000Z',
+    date: getRelativeDate(2, 19, 0), // 2 days ago
     category: 'Food & Drink',
     type: 'expense',
   },
@@ -86,7 +95,7 @@ export const mockTransactions: Transaction[] = [
     id: '10',
     merchant: "Trader Joe's",
     amount: -54.18,
-    date: '2026-02-02T11:20:00.000Z',
+    date: getRelativeDate(3, 11, 20), // 3 days ago
     category: 'Groceries',
     type: 'expense',
   },
@@ -96,7 +105,7 @@ export const mockTransactions: Transaction[] = [
     id: '11',
     merchant: 'Amazon.com',
     amount: -156.78,
-    date: '2026-02-03T20:15:00.000Z',
+    date: getRelativeDate(2, 20, 15), // 2 days ago
     category: 'Shopping',
     type: 'expense',
   },
@@ -104,7 +113,7 @@ export const mockTransactions: Transaction[] = [
     id: '12',
     merchant: 'Target',
     amount: -78.43,
-    date: '2026-02-01T14:00:00.000Z',
+    date: getRelativeDate(4, 14, 0), // 4 days ago
     category: 'Shopping',
     type: 'expense',
   },
@@ -112,7 +121,7 @@ export const mockTransactions: Transaction[] = [
     id: '13',
     merchant: 'Best Buy',
     amount: -299.99,
-    date: '2026-01-30T15:30:00.000Z',
+    date: getRelativeDate(6, 15, 30), // 6 days ago
     category: 'Electronics',
     type: 'expense',
   },
@@ -120,7 +129,7 @@ export const mockTransactions: Transaction[] = [
     id: '14',
     merchant: 'Nike.com',
     amount: -129.0,
-    date: '2026-01-28T09:45:00.000Z',
+    date: getRelativeDate(8, 9, 45), // 8 days ago
     category: 'Shopping',
     type: 'expense',
   },
@@ -130,7 +139,7 @@ export const mockTransactions: Transaction[] = [
     id: '15',
     merchant: 'AT&T Wireless',
     amount: -85.0,
-    date: '2026-02-01T00:00:00.000Z',
+    date: getRelativeDate(4, 0, 0), // 4 days ago
     category: 'Bills & Utilities',
     type: 'expense',
   },
@@ -138,7 +147,7 @@ export const mockTransactions: Transaction[] = [
     id: '16',
     merchant: 'Netflix',
     amount: -15.99,
-    date: '2026-02-01T00:00:00.000Z',
+    date: getRelativeDate(4, 0, 0), // 4 days ago
     category: 'Entertainment',
     type: 'expense',
   },
@@ -146,7 +155,7 @@ export const mockTransactions: Transaction[] = [
     id: '17',
     merchant: 'Spotify',
     amount: -10.99,
-    date: '2026-02-01T00:00:00.000Z',
+    date: getRelativeDate(4, 0, 0), // 4 days ago
     category: 'Entertainment',
     type: 'expense',
   },
@@ -154,7 +163,7 @@ export const mockTransactions: Transaction[] = [
     id: '18',
     merchant: 'PG&E Electric',
     amount: -142.67,
-    date: '2026-01-31T00:00:00.000Z',
+    date: getRelativeDate(5, 0, 0), // 5 days ago
     category: 'Bills & Utilities',
     type: 'expense',
   },
@@ -162,7 +171,7 @@ export const mockTransactions: Transaction[] = [
     id: '19',
     merchant: 'Comcast Internet',
     amount: -79.99,
-    date: '2026-01-29T00:00:00.000Z',
+    date: getRelativeDate(7, 0, 0), // 7 days ago
     category: 'Bills & Utilities',
     type: 'expense',
   },
@@ -172,7 +181,7 @@ export const mockTransactions: Transaction[] = [
     id: '20',
     merchant: 'Shell Gas Station',
     amount: -52.34,
-    date: '2026-02-02T08:15:00.000Z',
+    date: getRelativeDate(3, 8, 15), // 3 days ago
     category: 'Transportation',
     type: 'expense',
   },
@@ -180,7 +189,7 @@ export const mockTransactions: Transaction[] = [
     id: '21',
     merchant: 'Uber',
     amount: -24.5,
-    date: '2026-01-31T22:00:00.000Z',
+    date: getRelativeDate(5, 22, 0), // 5 days ago
     category: 'Transportation',
     type: 'expense',
   },
@@ -188,7 +197,7 @@ export const mockTransactions: Transaction[] = [
     id: '22',
     merchant: 'SF Parking Garage',
     amount: -18.0,
-    date: '2026-01-30T17:30:00.000Z',
+    date: getRelativeDate(6, 17, 30), // 6 days ago
     category: 'Transportation',
     type: 'expense',
   },
@@ -198,7 +207,7 @@ export const mockTransactions: Transaction[] = [
     id: '23',
     merchant: 'Equinox Gym',
     amount: -195.0,
-    date: '2026-02-01T00:00:00.000Z',
+    date: getRelativeDate(4, 0, 0), // 4 days ago
     category: 'Health & Fitness',
     type: 'expense',
   },
@@ -206,7 +215,7 @@ export const mockTransactions: Transaction[] = [
     id: '24',
     merchant: 'CVS Pharmacy',
     amount: -28.45,
-    date: '2026-01-29T13:20:00.000Z',
+    date: getRelativeDate(7, 13, 20), // 7 days ago
     category: 'Health & Fitness',
     type: 'expense',
   },
@@ -216,7 +225,7 @@ export const mockTransactions: Transaction[] = [
     id: '25',
     merchant: 'Cash App - Sarah Miller',
     amount: 25.0,
-    date: '2026-01-27T16:00:00.000Z',
+    date: getRelativeDate(9, 16, 0), // 9 days ago
     category: 'Income',
     type: 'income',
   },
@@ -224,7 +233,7 @@ export const mockTransactions: Transaction[] = [
     id: '26',
     merchant: 'Interest - Chase Savings',
     amount: 12.35,
-    date: '2026-01-25T00:00:00.000Z',
+    date: getRelativeDate(11, 0, 0), // 11 days ago
     category: 'Income',
     type: 'income',
   },
@@ -234,7 +243,7 @@ export const mockTransactions: Transaction[] = [
     id: '27',
     merchant: 'Apple iTunes',
     amount: -4.99,
-    date: '2026-01-26T10:30:00.000Z',
+    date: getRelativeDate(10, 10, 30), // 10 days ago
     category: 'Entertainment',
     type: 'expense',
   },
@@ -242,8 +251,66 @@ export const mockTransactions: Transaction[] = [
     id: '28',
     merchant: 'Costco',
     amount: -234.56,
-    date: '2026-01-24T11:00:00.000Z',
+    date: getRelativeDate(12, 11, 0), // 12 days ago
     category: 'Groceries',
+    type: 'expense',
+  },
+
+  // Additional transactions for more data over time (older)
+  {
+    id: '29',
+    merchant: 'Rent Payment',
+    amount: -2200.0,
+    date: getRelativeDate(15, 9, 0), // 15 days ago
+    category: 'Bills & Utilities',
+    type: 'expense',
+  },
+  {
+    id: '30',
+    merchant: 'Paycheck - Gerald Inc',
+    amount: 3500.0,
+    date: getRelativeDate(15, 9, 0), // 15 days ago
+    category: 'Income',
+    type: 'income',
+  },
+  {
+    id: '31',
+    merchant: 'Restaurant - Italian Place',
+    amount: -68.5,
+    date: getRelativeDate(18, 19, 30), // 18 days ago
+    category: 'Food & Drink',
+    type: 'expense',
+  },
+  {
+    id: '32',
+    merchant: 'Gas Station',
+    amount: -45.0,
+    date: getRelativeDate(20, 8, 0), // 20 days ago
+    category: 'Transportation',
+    type: 'expense',
+  },
+  {
+    id: '33',
+    merchant: 'Home Depot',
+    amount: -189.99,
+    date: getRelativeDate(22, 14, 0), // 22 days ago
+    category: 'Shopping',
+    type: 'expense',
+  },
+  {
+    id: '34',
+    merchant: 'Bonus - Gerald Inc',
+    amount: 1000.0,
+    date: getRelativeDate(25, 9, 0), // 25 days ago
+    category: 'Income',
+    type: 'income',
+  },
+  {
+    id: '35',
+    merchant: 'Insurance Premium',
+    amount: -150.0,
+    date: getRelativeDate(28, 0, 0), // 28 days ago
+    category: 'Bills & Utilities',
     type: 'expense',
   },
 ];

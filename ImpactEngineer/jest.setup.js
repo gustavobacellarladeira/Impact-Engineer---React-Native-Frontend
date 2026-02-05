@@ -2,6 +2,57 @@
  * Jest Setup File
  */
 
+// Mock react-native-gesture-handler (MUST be before reanimated)
+jest.mock('react-native-gesture-handler', () => {
+  const React = require('react');
+  const { View, ScrollView } = require('react-native');
+  return {
+    GestureHandlerRootView: ({ children, style }) =>
+      React.createElement(View, { style }, children),
+    Swipeable: View,
+    DrawerLayout: View,
+    State: {},
+    ScrollView: ScrollView,
+    Slider: View,
+    Switch: View,
+    TextInput: View,
+    ToolbarAndroid: View,
+    TouchableHighlight: View,
+    TouchableNativeFeedback: View,
+    TouchableOpacity: View,
+    TouchableWithoutFeedback: View,
+    PanGestureHandler: View,
+    TapGestureHandler: View,
+    FlingGestureHandler: View,
+    ForceTouchGestureHandler: View,
+    LongPressGestureHandler: View,
+    NativeViewGestureHandler: View,
+    PinchGestureHandler: View,
+    RotationGestureHandler: View,
+    RawButton: View,
+    BaseButton: View,
+    RectButton: View,
+    BorderlessButton: View,
+    FlatList: View,
+    gestureHandlerRootHOC: jest.fn(Component => Component),
+    Directions: {},
+  };
+});
+
+// Mock react-native-haptic-feedback
+jest.mock('react-native-haptic-feedback', () => ({
+  trigger: jest.fn(),
+  HapticFeedbackTypes: {
+    impactLight: 'impactLight',
+    impactMedium: 'impactMedium',
+    impactHeavy: 'impactHeavy',
+    selection: 'selection',
+    notificationSuccess: 'notificationSuccess',
+    notificationWarning: 'notificationWarning',
+    notificationError: 'notificationError',
+  },
+}));
+
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const { View, Text } = require('react-native');
@@ -21,6 +72,8 @@ jest.mock('react-native-reanimated', () => {
     withSpring: jest.fn(value => value),
     withTiming: jest.fn(value => value),
     interpolateColor: jest.fn(() => '#000000'),
+    FadeIn: { delay: jest.fn(() => ({})) },
+    FadeInDown: { delay: jest.fn(() => ({})) },
     Easing: {
       linear: jest.fn(),
       ease: jest.fn(),
@@ -28,6 +81,36 @@ jest.mock('react-native-reanimated', () => {
     },
   };
 });
+
+// Mock @react-navigation/native
+jest.mock('@react-navigation/native', () => {
+  const React = require('react');
+  return {
+    NavigationContainer: ({ children }) => children,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+    }),
+    useRoute: () => ({ params: {} }),
+  };
+});
+
+// Mock @react-navigation/bottom-tabs
+jest.mock('@react-navigation/bottom-tabs', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    createBottomTabNavigator: () => ({
+      Navigator: ({ children }) => React.createElement(View, null, children),
+      Screen: ({ children }) => children,
+    }),
+  };
+});
+
+// Mock react-native-screens
+jest.mock('react-native-screens', () => ({
+  enableScreens: jest.fn(),
+}));
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {

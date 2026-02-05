@@ -598,20 +598,26 @@ export function TransactionHistoryScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <SafeAreaView
           edges={['top']}
-          style={{ backgroundColor: colors.surface }}
+          style={{ backgroundColor: colors.background }}
         >
           <View
             style={[
               styles.header,
               {
-                backgroundColor: colors.surface,
-                borderBottomColor: colors.borderLight,
+                backgroundColor: colors.background,
               },
             ]}
           >
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Transactions
-            </Text>
+            <View style={styles.headerTitleContainer}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                Transactions
+              </Text>
+              <Text
+                style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+              >
+                Your financial activity
+              </Text>
+            </View>
             <View style={styles.headerActions}>
               <ThemeToggle />
             </View>
@@ -625,13 +631,15 @@ export function TransactionHistoryScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header with SafeArea */}
-      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.surface }}>
+      <SafeAreaView
+        edges={['top']}
+        style={{ backgroundColor: colors.background }}
+      >
         <View
           style={[
             styles.header,
             {
-              backgroundColor: colors.surface,
-              borderBottomColor: colors.borderLight,
+              backgroundColor: colors.background,
             },
           ]}
         >
@@ -652,9 +660,16 @@ export function TransactionHistoryScreen() {
               </Text>
             </>
           ) : (
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              Transactions
-            </Text>
+            <View style={styles.headerTitleContainer}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                Transactions
+              </Text>
+              <Text
+                style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+              >
+                Your financial activity
+              </Text>
+            </View>
           )}
           <View style={styles.headerActions}>
             {isSelectionMode ? (
@@ -824,12 +839,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    borderBottomWidth: 1,
+    paddingVertical: spacing.md,
+  },
+  headerTitleContainer: {
+    flex: 1,
   },
   title: {
     fontSize: typography.size.xxxl,
     fontWeight: typography.weight.bold,
+  },
+  headerSubtitle: {
+    fontSize: typography.size.md,
+    marginTop: spacing.xs,
   },
   selectionTitle: {
     fontSize: typography.size.xl,
