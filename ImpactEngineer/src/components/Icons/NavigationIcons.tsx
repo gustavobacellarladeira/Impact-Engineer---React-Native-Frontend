@@ -226,3 +226,39 @@ export const FilterIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
     />
   </Svg>
 );
+
+// Sort icon (arrows up/down)
+export const SortIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M7 15l5 5 5-5"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M7 9l5-5 5 5"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Chevron down icon
+export const ChevronDownIcon = ({
+  size = 24,
+  color = '#64748B',
+}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M6 9l6 6 6-6"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

@@ -1,7 +1,6 @@
 /**
  * SortBar Component
- * Dropdown to sort transactions by date or amount
- * With modern styling and animations
+ * Compact dropdown to sort transactions by date or amount
  */
 
 import React, { memo, useState, useCallback } from 'react';
@@ -10,13 +9,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
-  interpolate,
 } from 'react-native-reanimated';
 import { SortOption, SortOptionItem } from '../../types';
 import { useTheme } from '../../theme/ThemeContext';
 import { spacing, borderRadius, typography, shadows } from '../../theme';
 import { triggerLightImpact, triggerSelection } from '../../utils/haptics';
+import { SortIcon, ChevronDownIcon } from '../Icons';
 
 interface SortBarProps {
   activeSort: SortOption;
@@ -87,7 +85,6 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
           styles.sortButton,
           {
             backgroundColor: colors.surfaceSecondary,
-            borderColor: colors.border,
           },
           animatedButtonStyle,
         ]}
@@ -97,21 +94,12 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
         accessibilityRole="button"
         accessibilityLabel={`Sort by ${activeLabel}`}
       >
-        <View
-          style={[
-            styles.sortIconContainer,
-            { backgroundColor: colors.primary + '15' },
-          ]}
-        >
-          <Text style={[styles.sortIcon, { color: colors.primary }]}>↕</Text>
-        </View>
+        <SortIcon size={14} color={colors.textSecondary} />
         <Text style={[styles.sortText, { color: colors.textPrimary }]}>
           {activeLabel}
         </Text>
         <Animated.View style={animatedChevronStyle}>
-          <Text style={[styles.chevron, { color: colors.textSecondary }]}>
-            ▼
-          </Text>
+          <ChevronDownIcon size={12} color={colors.textTertiary} />
         </Animated.View>
       </AnimatedPressable>
 
@@ -172,29 +160,14 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    gap: spacing.sm,
-  },
-  sortIconContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sortIcon: {
-    fontSize: typography.size.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: borderRadius.md,
+    gap: 4,
   },
   sortText: {
-    fontSize: typography.size.sm,
-    fontWeight: typography.weight.semibold,
-  },
-  chevron: {
-    fontSize: 8,
-    marginLeft: spacing.xs,
+    fontSize: 13,
+    fontWeight: '500' as const,
   },
   overlay: {
     flex: 1,
