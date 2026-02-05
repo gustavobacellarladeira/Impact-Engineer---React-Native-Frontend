@@ -10,17 +10,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
   interpolateColor,
 } from 'react-native-reanimated';
 import { FilterButtonType, FilterOption } from '../../types';
-import {
-  colors,
-  spacing,
-  borderRadius,
-  typography,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, borderRadius, typography, shadows } from '../../theme';
 import { triggerLightImpact } from '../../utils/haptics';
 
 interface FilterBarProps {
@@ -32,6 +26,13 @@ interface AnimatedFilterButtonProps {
   option: FilterOption;
   isActive: boolean;
   onPress: () => void;
+  colors: {
+    filterInactive: string;
+    filterActive: string;
+    border: string;
+    filterInactiveText: string;
+    filterActiveText: string;
+  };
 }
 
 const FILTER_OPTIONS: FilterOption[] = [
@@ -46,6 +47,7 @@ function AnimatedFilterButton({
   option,
   isActive,
   onPress,
+  colors,
 }: AnimatedFilterButtonProps) {
   const scale = useSharedValue(1);
   const progress = useSharedValue(isActive ? 1 : 0);
@@ -114,6 +116,8 @@ function AnimatedFilterButton({
 }
 
 function FilterBarComponent({ activeFilter, onFilterChange }: FilterBarProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       {FILTER_OPTIONS.map(option => (
@@ -122,6 +126,7 @@ function FilterBarComponent({ activeFilter, onFilterChange }: FilterBarProps) {
           option={option}
           isActive={activeFilter === option.key}
           onPress={() => onFilterChange(option.key)}
+          colors={colors}
         />
       ))}
     </View>

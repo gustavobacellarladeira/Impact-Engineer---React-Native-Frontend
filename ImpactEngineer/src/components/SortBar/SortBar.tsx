@@ -6,13 +6,8 @@
 import React, { memo, useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable, Modal } from 'react-native';
 import { SortOption, SortOptionItem } from '../../types';
-import {
-  colors,
-  spacing,
-  borderRadius,
-  typography,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, borderRadius, typography, shadows } from '../../theme';
 import { triggerLightImpact, triggerSelection } from '../../utils/haptics';
 
 interface SortBarProps {
@@ -28,6 +23,7 @@ const SORT_OPTIONS: SortOptionItem[] = [
 ];
 
 function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
 
   const activeLabel =
@@ -50,14 +46,19 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
   return (
     <View style={styles.container}>
       <Pressable
-        style={styles.sortButton}
+        style={[
+          styles.sortButton,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
         onPress={handleOpenModal}
         accessibilityRole="button"
         accessibilityLabel={`Sort by ${activeLabel}`}
       >
         <Text style={styles.sortIcon}>↕️</Text>
-        <Text style={styles.sortText}>{activeLabel}</Text>
-        <Text style={styles.chevron}>▼</Text>
+        <Text style={[styles.sortText, { color: colors.textPrimary }]}>
+          {activeLabel}
+        </Text>
+        <Text style={[styles.chevron, { color: colors.textSecondary }]}>▼</Text>
       </Pressable>
 
       <Modal
@@ -70,8 +71,12 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
           style={styles.overlay}
           onPress={() => setModalVisible(false)}
         >
-          <View style={styles.dropdown}>
-            <Text style={styles.dropdownTitle}>Sort By</Text>
+          <View style={[styles.dropdown, { backgroundColor: colors.surface }]}>
+            <Text
+              style={[styles.dropdownTitle, { color: colors.textSecondary }]}
+            >
+              Sort By
+            </Text>
             {SORT_OPTIONS.map(option => {
               const isActive = activeSort === option.key;
               return (
@@ -79,19 +84,24 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
                   key={option.key}
                   style={[
                     styles.dropdownItem,
-                    isActive && styles.dropdownItemActive,
+                    isActive && { backgroundColor: colors.primaryLight + '20' },
                   ]}
                   onPress={() => handleSelect(option.key)}
                 >
                   <Text
                     style={[
                       styles.dropdownItemText,
-                      isActive && styles.dropdownItemTextActive,
+                      { color: isActive ? colors.primary : colors.textPrimary },
+                      isActive && { fontWeight: typography.weight.semibold },
                     ]}
                   >
                     {option.label}
                   </Text>
-                  {isActive && <Text style={styles.checkmark}>✓</Text>}
+                  {isActive && (
+                    <Text style={[styles.checkmark, { color: colors.primary }]}>
+                      ✓
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}
@@ -111,12 +121,10 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   sortIcon: {
     fontSize: typography.size.sm,
@@ -125,12 +133,10 @@ const styles = StyleSheet.create({
   sortText: {
     fontSize: typography.size.sm,
     fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
   },
   chevron: {
     fontSize: 8,
     marginLeft: spacing.xs,
-    color: colors.textSecondary,
   },
   overlay: {
     flex: 1,
@@ -139,7 +145,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dropdown: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     width: '80%',
@@ -149,7 +154,6 @@ const styles = StyleSheet.create({
   dropdownTitle: {
     fontSize: typography.size.sm,
     fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: spacing.md,
@@ -163,20 +167,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.md,
   },
-  dropdownItemActive: {
-    backgroundColor: colors.primaryLight + '20',
-  },
   dropdownItemText: {
     fontSize: typography.size.md,
-    color: colors.textPrimary,
-  },
-  dropdownItemTextActive: {
-    fontWeight: typography.weight.semibold,
-    color: colors.primary,
   },
   checkmark: {
     fontSize: typography.size.lg,
-    color: colors.primary,
     fontWeight: typography.weight.bold,
   },
 });

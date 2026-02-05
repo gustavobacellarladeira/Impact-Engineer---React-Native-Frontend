@@ -5,7 +5,8 @@
 
 import React, { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, typography } from '../../theme';
 
 interface EmptyStateProps {
   title?: string;
@@ -18,11 +19,15 @@ function EmptyStateComponent({
   message = 'Try adjusting your filters or search terms.',
   isFiltered = false,
 }: EmptyStateProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container} accessibilityRole="text">
       <Text style={styles.emoji}>{isFiltered ? '🔍' : '📭'}</Text>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>
+        {message}
+      </Text>
     </View>
   );
 }
@@ -44,13 +49,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typography.size.xl,
     fontWeight: typography.weight.semibold,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   message: {
     fontSize: typography.size.md,
-    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },

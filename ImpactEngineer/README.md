@@ -30,6 +30,9 @@ A React Native mobile application that displays a user's transaction history wit
 - **Offline Support**: Redux Persist with AsyncStorage for offline data persistence
 - **Haptic Feedback**: Native haptic feedback on all interactive elements (filters, buttons, list items, pull-to-refresh)
 - **Swipe Actions**: Swipe left to delete transactions, swipe right to change category with an intuitive category picker
+- **Dark Mode**: Full dark mode support with system preference detection and manual toggle (sun/moon icon in header)
+- **Stats Summary Panel**: Pull-up panel showing transaction statistics including net balance, income/expense totals, and top categories
+- **Undo Delete**: Undo toast notification appears after deleting a transaction, allowing you to restore it within 5 seconds
 
 ## 🏗️ Architecture
 
@@ -47,10 +50,13 @@ src/
 │   ├── SearchBar/           # Merchant search input
 │   ├── SectionHeader/       # Date section headers
 │   ├── SortBar/             # Sort dropdown
+│   ├── StatsPanel/          # Pull-up stats summary panel
 │   ├── SwipeableTransactionItem/ # Transaction row with swipe actions
+│   ├── ThemeToggle/         # Dark/light mode toggle button
 │   ├── TransactionDetailModal/ # Transaction detail modal
 │   ├── TransactionItem/     # Single transaction row (non-swipeable)
-│   └── TransactionSkeleton/ # Loading skeleton
+│   ├── TransactionSkeleton/ # Loading skeleton
+│   └── UndoToast/           # Undo action toast notification
 ├── data/                    # Mock data
 │   └── mockTransactions.ts
 ├── hooks/                   # Custom React hooks
@@ -66,13 +72,15 @@ src/
 │   ├── selectors/           # Memoized selectors
 │   ├── hooks.ts             # Typed useDispatch/useSelector
 │   └── index.ts             # Store configuration
-├── theme/                   # Design tokens
-│   └── index.ts
+├── theme/                   # Design tokens & theming
+│   ├── index.ts             # Light/dark color schemes
+│   └── ThemeContext.tsx     # Theme context provider
 ├── types/                   # TypeScript type definitions
 │   └── transaction.ts
 └── utils/                   # Utility functions
     ├── currency.ts          # Currency formatting
-    └── date.ts              # Date formatting
+    ├── date.ts              # Date formatting
+    └── haptics.ts           # Haptic feedback utilities
 ```
 
 ### State Management Architecture
@@ -195,13 +203,6 @@ Unit tests are provided for:
 | **RTK Query queryFn for mocking**        | No HTTP overhead; easily swap to real API by changing to query()            |
 | **Skeleton over spinner**                | Better UX - gives users visual cues about content structure                 |
 | **Local filtering/sorting (in useMemo)** | All data loaded upfront; enables instant filter response without API calls  |
-
-## 🔮 What I'd Improve With More Time
-
-1. **UX Enhancements**
-   - Dark mode support
-   - Pull-up for quick stats summary
-   - Undo action after deleting transactions
 
 ## 🤖 AI Tools Used
 

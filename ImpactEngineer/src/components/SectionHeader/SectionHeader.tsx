@@ -5,7 +5,8 @@
 
 import React, { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, typography } from '../../theme';
 
 export interface SectionHeaderProps {
   title: string;
@@ -13,11 +14,18 @@ export interface SectionHeaderProps {
 }
 
 function SectionHeaderComponent({ title, count }: SectionHeaderProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.textSecondary }]}>
         {title}
-        {count !== undefined && <Text style={styles.count}> ({count})</Text>}
+        {count !== undefined && (
+          <Text style={[styles.count, { color: colors.textHint }]}>
+            {' '}
+            ({count})
+          </Text>
+        )}
       </Text>
     </View>
   );
@@ -30,17 +38,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
-    backgroundColor: colors.background,
   },
   title: {
     fontSize: typography.size.sm,
     fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   count: {
     fontWeight: typography.weight.regular,
-    color: colors.textHint,
   },
 });

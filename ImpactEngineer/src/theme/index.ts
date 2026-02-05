@@ -3,7 +3,8 @@
  * Centralized design tokens for consistent styling
  */
 
-export const colors = {
+// Light theme colors
+export const lightColors = {
   // Primary colors - Modern indigo/purple
   primary: '#6366F1',
   primaryDark: '#4F46E5',
@@ -40,6 +41,50 @@ export const colors = {
   filterActiveText: '#FFFFFF',
   filterInactiveText: '#64748B',
 };
+
+// Dark theme colors
+export const darkColors = {
+  // Primary colors - Modern indigo/purple
+  primary: '#818CF8',
+  primaryDark: '#6366F1',
+  primaryLight: '#4F46E5',
+
+  // Transaction colors - Adjusted for dark mode
+  income: '#34D399', // Brighter emerald for dark bg
+  incomeLight: '#064E3B',
+  expense: '#F87171', // Brighter red for dark bg
+  expenseLight: '#7F1D1D',
+
+  // Neutral colors - Dark grays
+  background: '#0F172A',
+  surface: '#1E293B',
+  surfaceSecondary: '#334155',
+
+  // Text colors - Light tones
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textHint: '#64748B',
+
+  // Border colors
+  border: '#334155',
+  borderLight: '#1E293B',
+
+  // State colors
+  error: '#F87171',
+  errorLight: '#7F1D1D',
+  success: '#34D399',
+
+  // Filter button colors
+  filterActive: '#818CF8',
+  filterInactive: '#1E293B',
+  filterActiveText: '#FFFFFF',
+  filterInactiveText: '#94A3B8',
+};
+
+// Default export for backward compatibility
+export const colors = lightColors;
+
+export type ThemeColors = typeof lightColors;
 
 export const spacing = {
   xs: 4,
@@ -109,3 +154,6 @@ export const animation = {
   normal: 250,
   slow: 400,
 };
+
+// Theme context exports
+export { ThemeProvider, useTheme, useThemeColors } from './ThemeContext';

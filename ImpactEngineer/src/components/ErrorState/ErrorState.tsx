@@ -6,13 +6,8 @@
 
 import React, { memo, useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {
-  colors,
-  spacing,
-  borderRadius,
-  typography,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, borderRadius, typography, shadows } from '../../theme';
 import { triggerMediumImpact } from '../../utils/haptics';
 
 interface ErrorStateProps {
@@ -24,6 +19,8 @@ function ErrorStateComponent({
   message = 'Something went wrong. Please try again.',
   onRetry,
 }: ErrorStateProps) {
+  const { colors } = useTheme();
+
   const handleRetry = useCallback(() => {
     triggerMediumImpact();
     onRetry();
@@ -32,10 +29,12 @@ function ErrorStateComponent({
   return (
     <View style={styles.container} accessibilityRole="alert">
       <Text style={styles.emoji}>⚠️</Text>
-      <Text style={styles.title}>Oops!</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={[styles.title, { color: colors.textPrimary }]}>Oops!</Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>
+        {message}
+      </Text>
       <TouchableOpacity
-        style={styles.retryButton}
+        style={[styles.retryButton, { backgroundColor: colors.primary }]}
         onPress={handleRetry}
         accessibilityRole="button"
         accessibilityLabel="Retry loading transactions"
@@ -63,26 +62,23 @@ const styles = StyleSheet.create({
   title: {
     fontSize: typography.size.xl,
     fontWeight: typography.weight.semibold,
-    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   message: {
     fontSize: typography.size.md,
-    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: spacing.xl,
   },
   retryButton: {
-    backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xxl,
     borderRadius: borderRadius.full,
     ...shadows.md,
   },
   retryText: {
-    color: colors.surface,
+    color: '#FFFFFF',
     fontSize: typography.size.md,
     fontWeight: typography.weight.semibold,
   },

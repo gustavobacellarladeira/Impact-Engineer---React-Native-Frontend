@@ -8,13 +8,8 @@
 import React, { memo, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { Transaction } from '../../types';
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, typography, borderRadius, shadows } from '../../theme';
 import { formatCurrency } from '../../utils/currency';
 import { formatDate } from '../../utils/date';
 import { getCategoryIcon } from '../Icons';
@@ -32,6 +27,7 @@ function TransactionItemComponent({
   transaction,
   onPress,
 }: TransactionItemProps) {
+  const { colors } = useTheme();
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
   const amountPrefix = isIncome ? '+' : '-';
@@ -43,7 +39,11 @@ function TransactionItemComponent({
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.container,
+        { backgroundColor: colors.surface },
+        pressed && styles.pressed,
+      ]}
       onPress={() => onPress?.(transaction)}
       onPressIn={handlePressIn}
       accessible={true}
@@ -71,10 +71,16 @@ function TransactionItemComponent({
 
       {/* Transaction Details */}
       <View style={styles.detailsContainer}>
-        <Text style={styles.merchant} numberOfLines={1}>
+        <Text
+          style={[styles.merchant, { color: colors.textPrimary }]}
+          numberOfLines={1}
+        >
           {transaction.merchant}
         </Text>
-        <Text style={styles.category} numberOfLines={1}>
+        <Text
+          style={[styles.category, { color: colors.textSecondary }]}
+          numberOfLines={1}
+        >
           {transaction.category} • {formatDate(transaction.date)}
         </Text>
       </View>
@@ -102,7 +108,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     marginHorizontal: spacing.lg,
@@ -131,12 +136,10 @@ const styles = StyleSheet.create({
   merchant: {
     fontSize: typography.size.md,
     fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   category: {
     fontSize: typography.size.sm,
-    color: colors.textSecondary,
   },
   amountContainer: {
     alignItems: 'flex-end',

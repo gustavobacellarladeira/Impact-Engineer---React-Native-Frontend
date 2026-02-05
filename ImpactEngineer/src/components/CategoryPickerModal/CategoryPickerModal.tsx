@@ -14,13 +14,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Transaction } from '../../types';
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  shadows,
-} from '../../theme';
+import { spacing, typography, borderRadius, shadows } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
 import { getCategoryIcon } from '../Icons';
 import { triggerSelection, triggerLightImpact } from '../../utils/haptics';
 
@@ -56,6 +51,7 @@ function CategoryPickerModalComponent({
   onSelectCategory,
 }: CategoryPickerModalProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   const handleClose = useCallback(() => {
     triggerLightImpact();
@@ -81,12 +77,29 @@ function CategoryPickerModalComponent({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.background, paddingBottom: insets.bottom },
+        ]}
+      >
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.handleBar} />
-          <Text style={styles.title}>Change Category</Text>
-          <Text style={styles.subtitle}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.borderLight,
+            },
+          ]}
+        >
+          <View
+            style={[styles.handleBar, { backgroundColor: colors.border }]}
+          />
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            Change Category
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Select a new category for {transaction.merchant}
           </Text>
           <Pressable
@@ -95,7 +108,9 @@ function CategoryPickerModalComponent({
             accessibilityRole="button"
             accessibilityLabel="Close"
           >
-            <Text style={styles.closeText}>Cancel</Text>
+            <Text style={[styles.closeText, { color: colors.primary }]}>
+              Cancel
+            </Text>
           </Pressable>
         </View>
 
@@ -113,7 +128,14 @@ function CategoryPickerModalComponent({
                   key={category}
                   style={[
                     styles.categoryItem,
-                    isSelected && styles.categoryItemSelected,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                    },
+                    isSelected && {
+                      borderColor: colors.primary,
+                      backgroundColor: colors.primary + '10',
+                    },
                   ]}
                   onPress={() => handleSelectCategory(category)}
                   accessibilityRole="button"
@@ -123,7 +145,8 @@ function CategoryPickerModalComponent({
                   <View
                     style={[
                       styles.categoryIcon,
-                      isSelected && styles.categoryIconSelected,
+                      { backgroundColor: colors.primaryLight + '30' },
+                      isSelected && { backgroundColor: colors.primary },
                     ]}
                   >
                     <IconComponent
@@ -134,13 +157,21 @@ function CategoryPickerModalComponent({
                   <Text
                     style={[
                       styles.categoryText,
-                      isSelected && styles.categoryTextSelected,
+                      { color: colors.textPrimary },
+                      isSelected && {
+                        color: colors.primary,
+                        fontWeight: typography.weight.semibold,
+                      },
                     ]}
                     numberOfLines={1}
                   >
                     {category}
                   </Text>
-                  {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  {isSelected && (
+                    <Text style={[styles.checkmark, { color: colors.primary }]}>
+                      ✓
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}
@@ -156,33 +187,27 @@ export const CategoryPickerModal = memo(CategoryPickerModalComponent);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.lg,
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
   },
   handleBar: {
     width: 36,
     height: 5,
-    backgroundColor: colors.border,
     borderRadius: 3,
     marginBottom: spacing.md,
   },
   title: {
     fontSize: typography.size.xl,
     fontWeight: typography.weight.semibold,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: typography.size.sm,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   closeButton: {
@@ -193,7 +218,6 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.size.lg,
     fontWeight: typography.weight.medium,
-    color: colors.primary,
   },
   content: {
     padding: spacing.lg,
@@ -204,43 +228,27 @@ const styles = StyleSheet.create({
   categoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     ...shadows.sm,
-  },
-  categoryItemSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary + '10',
   },
   categoryIcon: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.primaryLight + '30',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
-  },
-  categoryIconSelected: {
-    backgroundColor: colors.primary,
   },
   categoryText: {
     flex: 1,
     fontSize: typography.size.md,
     fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
-  },
-  categoryTextSelected: {
-    color: colors.primary,
-    fontWeight: typography.weight.semibold,
   },
   checkmark: {
     fontSize: typography.size.lg,
-    color: colors.primary,
     fontWeight: typography.weight.bold,
   },
 });

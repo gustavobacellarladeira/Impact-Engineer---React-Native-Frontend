@@ -11,13 +11,8 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-import {
-  colors,
-  spacing,
-  borderRadius,
-  typography,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, borderRadius, typography, shadows } from '../../theme';
 
 interface SearchBarProps {
   value: string;
@@ -30,16 +25,22 @@ function SearchBarComponent({
   onChangeText,
   placeholder = 'Search transactions...',
 }: SearchBarProps) {
+  const { colors } = useTheme();
   const showClearButton = value.length > 0;
 
   return (
     <View style={styles.container}>
-      <View style={styles.inputContainer}>
+      <View
+        style={[
+          styles.inputContainer,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
         {/* Search Icon */}
         <Text style={styles.searchIcon}>🔍</Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.textPrimary }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -58,7 +59,9 @@ function SearchBarComponent({
             accessibilityLabel="Clear search"
             accessibilityRole="button"
           >
-            <Text style={styles.clearIcon}>✕</Text>
+            <Text style={[styles.clearIcon, { color: colors.textSecondary }]}>
+              ✕
+            </Text>
           </TouchableOpacity>
         )}
       </View>
@@ -76,11 +79,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
     ...shadows.sm,
   },
   searchIcon: {
@@ -91,7 +92,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     fontSize: typography.size.md,
-    color: colors.textPrimary,
   },
   clearButton: {
     padding: spacing.sm,
@@ -99,6 +99,5 @@ const styles = StyleSheet.create({
   },
   clearIcon: {
     fontSize: typography.size.md,
-    color: colors.textSecondary,
   },
 });

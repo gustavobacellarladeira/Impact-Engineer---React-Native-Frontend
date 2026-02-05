@@ -11,4 +11,7 @@ export { CategoryFilterBar } from './CategoryFilter';
 export { SectionHeader } from './SectionHeader';
 export { EmptyState } from './EmptyState';
 export { ErrorState } from './ErrorState';
+export { ThemeToggle } from './ThemeToggle';
+export { UndoToast } from './UndoToast';
+export { StatsPanel } from './StatsPanel';
 export * from './Icons';

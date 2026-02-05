@@ -7,13 +7,8 @@ import React, { memo, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Transaction } from '../../types';
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, typography, borderRadius, shadows } from '../../theme';
 import { formatCurrency } from '../../utils/currency';
 import { formatDate } from '../../utils/date';
 import { getCategoryIcon, DeleteIcon, TagIcon } from '../Icons';
@@ -39,6 +34,7 @@ function SwipeableTransactionItemComponent({
   onDelete,
   onCategorize,
 }: SwipeableTransactionItemProps) {
+  const { colors } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
@@ -89,7 +85,7 @@ function SwipeableTransactionItemComponent({
           ]}
         >
           <Pressable
-            style={styles.deleteAction}
+            style={[styles.deleteAction, { backgroundColor: colors.expense }]}
             onPress={handleDelete}
             accessibilityRole="button"
             accessibilityLabel="Delete transaction"
@@ -97,14 +93,14 @@ function SwipeableTransactionItemComponent({
             <Animated.View
               style={[styles.actionContent, { transform: [{ scale }] }]}
             >
-              <DeleteIcon size={24} color={colors.surface} />
+              <DeleteIcon size={24} color="#FFFFFF" />
               <Text style={styles.actionText}>Delete</Text>
             </Animated.View>
           </Pressable>
         </Animated.View>
       );
     },
-    [handleDelete],
+    [handleDelete, colors.expense],
   );
 
   // Render left swipe actions (categorize)
@@ -128,7 +124,10 @@ function SwipeableTransactionItemComponent({
           style={[styles.leftActionsContainer, { transform: [{ translateX }] }]}
         >
           <Pressable
-            style={styles.categorizeAction}
+            style={[
+              styles.categorizeAction,
+              { backgroundColor: colors.primary },
+            ]}
             onPress={handleCategorize}
             accessibilityRole="button"
             accessibilityLabel="Change category"
@@ -136,14 +135,14 @@ function SwipeableTransactionItemComponent({
             <Animated.View
               style={[styles.actionContent, { transform: [{ scale }] }]}
             >
-              <TagIcon size={24} color={colors.surface} />
+              <TagIcon size={24} color="#FFFFFF" />
               <Text style={styles.actionText}>Category</Text>
             </Animated.View>
           </Pressable>
         </Animated.View>
       );
     },
-    [handleCategorize],
+    [handleCategorize, colors.primary],
   );
 
   return (
@@ -159,7 +158,11 @@ function SwipeableTransactionItemComponent({
       onSwipeableOpen={handleSwipeOpen}
     >
       <Pressable
-        style={({ pressed }) => [styles.container, pressed && styles.pressed]}
+        style={({ pressed }) => [
+          styles.container,
+          { backgroundColor: colors.surface },
+          pressed && styles.pressed,
+        ]}
         onPress={() => onPress?.(transaction)}
         onPressIn={handlePressIn}
         accessible={true}
@@ -187,10 +190,16 @@ function SwipeableTransactionItemComponent({
 
         {/* Transaction Details */}
         <View style={styles.detailsContainer}>
-          <Text style={styles.merchant} numberOfLines={1}>
+          <Text
+            style={[styles.merchant, { color: colors.textPrimary }]}
+            numberOfLines={1}
+          >
             {transaction.merchant}
           </Text>
-          <Text style={styles.category} numberOfLines={1}>
+          <Text
+            style={[styles.category, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
             {transaction.category} • {formatDate(transaction.date)}
           </Text>
         </View>
@@ -219,7 +228,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     marginHorizontal: spacing.lg,
@@ -248,12 +256,10 @@ const styles = StyleSheet.create({
   merchant: {
     fontSize: typography.size.md,
     fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   category: {
     fontSize: typography.size.sm,
-    color: colors.textSecondary,
   },
   amountContainer: {
     alignItems: 'flex-end',
@@ -275,14 +281,12 @@ const styles = StyleSheet.create({
   },
   deleteAction: {
     flex: 1,
-    backgroundColor: colors.expense,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: borderRadius.lg,
   },
   categorizeAction: {
     flex: 1,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: borderRadius.lg,
@@ -292,7 +296,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionText: {
-    color: colors.surface,
+    color: '#FFFFFF',
     fontSize: typography.size.xs,
     fontWeight: typography.weight.medium,
     marginTop: spacing.xs,

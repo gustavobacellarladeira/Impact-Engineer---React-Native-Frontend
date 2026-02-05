@@ -6,7 +6,8 @@
 import React, { memo, useMemo, useCallback } from 'react';
 import { StyleSheet, Text, ScrollView, Pressable } from 'react-native';
 import { CategoryFilter as CategoryFilterType } from '../../types';
-import { colors, spacing, borderRadius, typography } from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, borderRadius, typography } from '../../theme';
 import { triggerSelection } from '../../utils/haptics';
 
 interface CategoryFilterProps {
@@ -20,6 +21,7 @@ function CategoryFilterComponent({
   activeCategory,
   onCategoryChange,
 }: CategoryFilterProps) {
+  const { colors } = useTheme();
   const allCategories = useMemo(() => ['all', ...categories], [categories]);
 
   const handleCategoryPress = useCallback(
@@ -43,13 +45,31 @@ function CategoryFilterComponent({
         return (
           <Pressable
             key={category}
-            style={[styles.chip, isActive && styles.chipActive]}
+            style={[
+              styles.chip,
+              {
+                backgroundColor: isActive
+                  ? colors.primary + '15'
+                  : colors.surfaceSecondary,
+                borderColor: isActive ? colors.primary : colors.border,
+              },
+            ]}
             onPress={() => handleCategoryPress(category)}
             accessibilityRole="button"
             accessibilityLabel={`Filter by ${label}`}
             accessibilityState={{ selected: isActive }}
           >
-            <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+            <Text
+              style={[
+                styles.chipText,
+                {
+                  color: isActive ? colors.primary : colors.textSecondary,
+                  fontWeight: isActive
+                    ? typography.weight.medium
+                    : typography.weight.regular,
+                },
+              ]}
+            >
               {label}
             </Text>
           </Pressable>
@@ -71,21 +91,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
     marginRight: spacing.sm,
-  },
-  chipActive: {
-    backgroundColor: colors.primary + '15',
-    borderColor: colors.primary,
   },
   chipText: {
     fontSize: typography.size.sm,
-    color: colors.textSecondary,
-  },
-  chipTextActive: {
-    color: colors.primary,
-    fontWeight: typography.weight.medium,
   },
 });

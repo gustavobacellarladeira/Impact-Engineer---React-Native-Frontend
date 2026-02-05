@@ -14,13 +14,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Transaction } from '../../types';
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  shadows,
-} from '../../theme';
+import { useTheme } from '../../theme/ThemeContext';
+import { spacing, typography, borderRadius, shadows } from '../../theme';
 import { formatCurrency } from '../../utils/currency';
 import { getCategoryIcon } from '../Icons';
 import { triggerLightImpact } from '../../utils/haptics';
@@ -37,6 +32,7 @@ function TransactionDetailModalComponent({
   onClose,
 }: TransactionDetailModalProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   const handleClose = useCallback(() => {
     triggerLightImpact();
@@ -70,17 +66,34 @@ function TransactionDetailModalComponent({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: colors.background, paddingBottom: insets.bottom },
+        ]}
+      >
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.handleBar} />
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.borderLight,
+            },
+          ]}
+        >
+          <View
+            style={[styles.handleBar, { backgroundColor: colors.border }]}
+          />
           <Pressable
             style={styles.closeButton}
             onPress={handleClose}
             accessibilityRole="button"
             accessibilityLabel="Close"
           >
-            <Text style={styles.closeText}>Done</Text>
+            <Text style={[styles.closeText, { color: colors.primary }]}>
+              Done
+            </Text>
           </Pressable>
         </View>
 
@@ -89,7 +102,9 @@ function TransactionDetailModalComponent({
           showsVerticalScrollIndicator={false}
         >
           {/* Icon and Amount */}
-          <View style={styles.heroSection}>
+          <View
+            style={[styles.heroSection, { backgroundColor: colors.surface }]}
+          >
             <View
               style={[
                 styles.iconContainer,
@@ -108,20 +123,48 @@ function TransactionDetailModalComponent({
               {formatCurrency(Math.abs(transaction.amount))}
             </Text>
 
-            <Text style={styles.merchant}>{transaction.merchant}</Text>
+            <Text style={[styles.merchant, { color: colors.textPrimary }]}>
+              {transaction.merchant}
+            </Text>
           </View>
 
           {/* Details Section */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Transaction Details</Text>
+          <View
+            style={[styles.detailsSection, { backgroundColor: colors.surface }]}
+          >
+            <Text
+              style={[styles.sectionTitle, { color: colors.textSecondary }]}
+            >
+              Transaction Details
+            </Text>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Category</Text>
-              <Text style={styles.detailValue}>{transaction.category}</Text>
+            <View
+              style={[
+                styles.detailRow,
+                { borderBottomColor: colors.borderLight },
+              ]}
+            >
+              <Text
+                style={[styles.detailLabel, { color: colors.textSecondary }]}
+              >
+                Category
+              </Text>
+              <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                {transaction.category}
+              </Text>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Type</Text>
+            <View
+              style={[
+                styles.detailRow,
+                { borderBottomColor: colors.borderLight },
+              ]}
+            >
+              <Text
+                style={[styles.detailLabel, { color: colors.textSecondary }]}
+              >
+                Type
+              </Text>
               <View
                 style={[
                   styles.typeBadge,
@@ -138,19 +181,57 @@ function TransactionDetailModalComponent({
               </View>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Date</Text>
-              <Text style={styles.detailValue}>{formattedDate}</Text>
+            <View
+              style={[
+                styles.detailRow,
+                { borderBottomColor: colors.borderLight },
+              ]}
+            >
+              <Text
+                style={[styles.detailLabel, { color: colors.textSecondary }]}
+              >
+                Date
+              </Text>
+              <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                {formattedDate}
+              </Text>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Time</Text>
-              <Text style={styles.detailValue}>{formattedTime}</Text>
+            <View
+              style={[
+                styles.detailRow,
+                { borderBottomColor: colors.borderLight },
+              ]}
+            >
+              <Text
+                style={[styles.detailLabel, { color: colors.textSecondary }]}
+              >
+                Time
+              </Text>
+              <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+                {formattedTime}
+              </Text>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Transaction ID</Text>
-              <Text style={styles.detailValueMono}>#{transaction.id}</Text>
+            <View
+              style={[
+                styles.detailRow,
+                { borderBottomColor: colors.borderLight },
+              ]}
+            >
+              <Text
+                style={[styles.detailLabel, { color: colors.textSecondary }]}
+              >
+                Transaction ID
+              </Text>
+              <Text
+                style={[
+                  styles.detailValueMono,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                #{transaction.id}
+              </Text>
             </View>
           </View>
         </ScrollView>
@@ -164,21 +245,17 @@ export const TransactionDetailModal = memo(TransactionDetailModalComponent);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.lg,
     alignItems: 'center',
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
   },
   handleBar: {
     width: 36,
     height: 5,
-    backgroundColor: colors.border,
     borderRadius: 3,
     marginBottom: spacing.md,
   },
@@ -190,7 +267,6 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.size.lg,
     fontWeight: typography.weight.semibold,
-    color: colors.primary,
   },
   content: {
     padding: spacing.lg,
@@ -198,7 +274,6 @@ const styles = StyleSheet.create({
   heroSection: {
     alignItems: 'center',
     paddingVertical: spacing.xxl,
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     marginBottom: spacing.lg,
     ...shadows.sm,
@@ -219,11 +294,9 @@ const styles = StyleSheet.create({
   merchant: {
     fontSize: typography.size.xl,
     fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
     textAlign: 'center',
   },
   detailsSection: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     ...shadows.sm,
@@ -231,7 +304,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.size.sm,
     fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: spacing.lg,
@@ -242,16 +314,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
   },
   detailLabel: {
     fontSize: typography.size.md,
-    color: colors.textSecondary,
   },
   detailValue: {
     fontSize: typography.size.md,
     fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
     textAlign: 'right',
     flex: 1,
     marginLeft: spacing.lg,
@@ -259,7 +328,6 @@ const styles = StyleSheet.create({
   detailValueMono: {
     fontSize: typography.size.md,
     fontWeight: typography.weight.medium,
-    color: colors.textSecondary,
     fontFamily: 'Courier',
   },
   typeBadge: {

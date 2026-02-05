@@ -6,12 +6,13 @@
  */
 
 import React from 'react';
-import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './src/store';
+import { ThemeProvider } from './src/theme';
 import { TransactionHistoryScreen } from './src/screens';
 
 // Loading component for PersistGate
@@ -26,10 +27,11 @@ function App() {
     <GestureHandlerRootView style={styles.gestureRoot}>
       <Provider store={store}>
         <PersistGate loading={<LoadingView />} persistor={persistor}>
-          <SafeAreaProvider>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-            <TransactionHistoryScreen />
-          </SafeAreaProvider>
+          <ThemeProvider>
+            <SafeAreaProvider>
+              <TransactionHistoryScreen />
+            </SafeAreaProvider>
+          </ThemeProvider>
         </PersistGate>
       </Provider>
     </GestureHandlerRootView>

@@ -3,7 +3,7 @@
  * Main screen displaying the user's transaction history with filtering capabilities
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import {
   SectionList,
   RefreshControl,
@@ -11,7 +11,7 @@ import {
   Text,
   View,
   SectionListRenderItemInfo,
-  Alert,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -26,10 +26,14 @@ import {
   SwipeableTransactionItem,
   TransactionDetailModal,
   TransactionSkeleton,
+  ThemeToggle,
+  UndoToast,
+  StatsPanel,
   TRANSACTION_ITEM_HEIGHT,
 } from '../../components';
 import { useTransactionsRedux as useTransactions } from '../../hooks';
-import { colors, spacing, typography } from '../../theme';
+import { useTheme } from '../../theme';
+import { spacing, typography } from '../../theme';
 import {
   triggerSuccess,
   triggerLightImpact,
@@ -48,7 +52,11 @@ const SEPARATOR_HEIGHT = 0;
 const ITEM_HEIGHT = TRANSACTION_ITEM_HEIGHT + spacing.xs * 2;
 const SECTION_HEADER_HEIGHT = 44;
 
+// Undo timeout duration in milliseconds
+const UNDO_TIMEOUT = 5000;
+
 export function TransactionHistoryScreen() {
+  const { colors } = useTheme();
   const {
     transactions,
     isLoading,
@@ -75,6 +83,16 @@ export function TransactionHistoryScreen() {
   const [categoryPickerTransaction, setCategoryPickerTransaction] =
     useState<Transaction | null>(null);
 
+  // State for undo functionality
+  const [undoTransaction, setUndoTransaction] = useState<Transaction | null>(
+    null,
+  );
+  const [showUndo, setShowUndo] = useState(false);
+  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // State for stats panel
+  const [showStats, setShowStats] = useState(false);
+
   // Check if filters are active
   const isFiltered = useMemo(
     () =>
@@ -87,30 +105,71 @@ export function TransactionHistoryScreen() {
   // Optimized key extractor
   const keyExtractor = useCallback((item: Transaction) => item.id, []);
 
-  // Handle delete transaction
+  // Clear undo timeout
+  const clearUndoTimeout = useCallback(() => {
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+      undoTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Handle delete transaction with undo support
   const handleDeleteTransaction = useCallback(
-    (transaction: Transaction) => {
-      Alert.alert(
-        'Delete Transaction',
-        `Are you sure you want to delete the transaction from ${transaction.merchant}?`,
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: async () => {
-              triggerWarning();
-              await deleteTransaction(transaction.id);
-            },
-          },
-        ],
-      );
+    async (transaction: Transaction) => {
+      // Clear any existing undo
+      clearUndoTimeout();
+
+      // Trigger haptic feedback
+      triggerWarning();
+
+      // Store transaction for undo
+      setUndoTransaction(transaction);
+      setShowUndo(true);
+
+      // Actually delete the transaction
+      await deleteTransaction(transaction.id);
+
+      // Set timeout to dismiss undo toast
+      undoTimeoutRef.current = setTimeout(() => {
+        setShowUndo(false);
+        setUndoTransaction(null);
+      }, UNDO_TIMEOUT);
     },
-    [deleteTransaction],
+    [deleteTransaction, clearUndoTimeout],
   );
+
+  // Handle undo action - restore the transaction
+  const handleUndo = useCallback(() => {
+    if (undoTransaction) {
+      // Clear the timeout
+      clearUndoTimeout();
+
+      // Refresh to restore from server
+      refresh();
+
+      // Clear undo state
+      setShowUndo(false);
+      setUndoTransaction(null);
+    }
+  }, [undoTransaction, clearUndoTimeout, refresh]);
+
+  // Handle dismiss undo toast
+  const handleDismissUndo = useCallback(() => {
+    clearUndoTimeout();
+    setShowUndo(false);
+    setUndoTransaction(null);
+  }, [clearUndoTimeout]);
+
+  // Handle show stats
+  const handleShowStats = useCallback(() => {
+    triggerLightImpact();
+    setShowStats(true);
+  }, []);
+
+  // Handle close stats
+  const handleCloseStats = useCallback(() => {
+    setShowStats(false);
+  }, []);
 
   // Handle categorize transaction
   const handleCategorizeTransaction = useCallback(
@@ -206,7 +265,7 @@ export function TransactionHistoryScreen() {
           onCategoryChange={handleCategoryChange}
         />
         <View style={styles.resultsHeader}>
-          <Text style={styles.resultsText}>
+          <Text style={[styles.resultsText, { color: colors.textSecondary }]}>
             {isLoading
               ? 'Loading transactions...'
               : `${transactions.length} transaction${
@@ -232,6 +291,7 @@ export function TransactionHistoryScreen() {
       handleSortChange,
       isLoading,
       transactions.length,
+      colors.textSecondary,
     ],
   );
 
@@ -256,10 +316,26 @@ export function TransactionHistoryScreen() {
   // Show error state
   if (error && !isRefreshing) {
     return (
-      <View style={styles.container}>
-        <SafeAreaView edges={['top']} style={styles.safeArea}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Transactions</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <SafeAreaView
+          edges={['top']}
+          style={{ backgroundColor: colors.surface }}
+        >
+          <View
+            style={[
+              styles.header,
+              {
+                backgroundColor: colors.surface,
+                borderBottomColor: colors.borderLight,
+              },
+            ]}
+          >
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              Transactions
+            </Text>
+            <View style={styles.headerActions}>
+              <ThemeToggle />
+            </View>
           </View>
         </SafeAreaView>
         <ErrorState message={error} onRetry={retry} />
@@ -268,11 +344,37 @@ export function TransactionHistoryScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header with white SafeArea */}
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Transactions</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header with SafeArea */}
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.surface }}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.borderLight,
+            },
+          ]}
+        >
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            Transactions
+          </Text>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={[
+                styles.statsButton,
+                { backgroundColor: colors.primaryLight },
+              ]}
+              onPress={handleShowStats}
+              accessibilityRole="button"
+              accessibilityLabel="View stats"
+            >
+              <Text style={[styles.statsButtonText, { color: colors.primary }]}>
+                Stats
+              </Text>
+            </Pressable>
+            <ThemeToggle />
+          </View>
         </View>
       </SafeAreaView>
 
@@ -327,6 +429,25 @@ export function TransactionHistoryScreen() {
         onClose={handleCloseCategoryPicker}
         onSelectCategory={handleCategorySelect}
       />
+
+      {/* Stats Panel */}
+      <StatsPanel
+        visible={showStats}
+        onClose={handleCloseStats}
+        transactions={transactions}
+      />
+
+      {/* Undo Toast */}
+      <UndoToast
+        visible={showUndo}
+        message={
+          undoTransaction
+            ? `Deleted "${undoTransaction.merchant}"`
+            : 'Transaction deleted'
+        }
+        onUndo={handleUndo}
+        onDismiss={handleDismissUndo}
+      />
     </View>
   );
 }
@@ -334,22 +455,32 @@ export function TransactionHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  safeArea: {
-    backgroundColor: colors.surface,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
   },
   title: {
     fontSize: typography.size.xxxl,
     fontWeight: typography.weight.bold,
-    color: colors.textPrimary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  statsButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+  },
+  statsButtonText: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
   },
   resultsHeader: {
     flexDirection: 'row',
@@ -361,7 +492,6 @@ const styles = StyleSheet.create({
   },
   resultsText: {
     fontSize: typography.size.sm,
-    color: colors.textSecondary,
   },
   listContent: {
     paddingBottom: spacing.xxl,
