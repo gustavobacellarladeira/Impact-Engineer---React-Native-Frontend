@@ -28,6 +28,8 @@ A React Native mobile application that displays a user's transaction history wit
 - **Sort Options**: Sort by date (newest/oldest) or amount (highest/lowest)
 - **Category Filter**: Filter transactions by category in addition to type filter
 - **Offline Support**: Redux Persist with AsyncStorage for offline data persistence
+- **Haptic Feedback**: Native haptic feedback on all interactive elements (filters, buttons, list items, pull-to-refresh)
+- **Swipe Actions**: Swipe left to delete transactions, swipe right to change category with an intuitive category picker
 
 ## 🏗️ Architecture
 
@@ -37,6 +39,7 @@ A React Native mobile application that displays a user's transaction history wit
 src/
 ├── components/              # Reusable UI components
 │   ├── CategoryFilter/      # Category filter chips
+│   ├── CategoryPickerModal/ # Modal for changing transaction category
 │   ├── EmptyState/          # Empty state display
 │   ├── ErrorState/          # Error state with retry
 │   ├── FilterBar/           # Transaction type filter buttons (animated)
@@ -44,8 +47,9 @@ src/
 │   ├── SearchBar/           # Merchant search input
 │   ├── SectionHeader/       # Date section headers
 │   ├── SortBar/             # Sort dropdown
+│   ├── SwipeableTransactionItem/ # Transaction row with swipe actions
 │   ├── TransactionDetailModal/ # Transaction detail modal
-│   ├── TransactionItem/     # Single transaction row
+│   ├── TransactionItem/     # Single transaction row (non-swipeable)
 │   └── TransactionSkeleton/ # Loading skeleton
 ├── data/                    # Mock data
 │   └── mockTransactions.ts
@@ -194,12 +198,10 @@ Unit tests are provided for:
 
 ## 🔮 What I'd Improve With More Time
 
-2. **UX Enhancements**
-   - Haptic feedback on interactions
+1. **UX Enhancements**
    - Dark mode support
-   - Swipe actions (delete, categorize)
    - Pull-up for quick stats summary
-   - Pagination for very large transaction lists
+   - Undo action after deleting transactions
 
 ## 🤖 AI Tools Used
 

@@ -5,7 +5,11 @@
 
 import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { useGetTransactionsQuery } from '../store/api';
+import {
+  useGetTransactionsQuery,
+  useDeleteTransactionMutation,
+  useUpdateTransactionCategoryMutation,
+} from '../store/api';
 import {
   setTypeFilter as setTypeFilterAction,
   setSearchQuery as setSearchQueryAction,
@@ -33,6 +37,10 @@ export function useTransactionsRedux() {
     error,
     refetch,
   } = useGetTransactionsQuery();
+
+  // Mutation hooks for delete and update
+  const [deleteTransactionMutation] = useDeleteTransactionMutation();
+  const [updateCategoryMutation] = useUpdateTransactionCategoryMutation();
 
   // Filters from Redux store
   const filters = useAppSelector(selectTransactionFilters);
@@ -148,6 +156,34 @@ export function useTransactionsRedux() {
     await refetch();
   }, [refetch]);
 
+  // Delete a transaction
+  const deleteTransaction = useCallback(
+    async (id: string) => {
+      try {
+        await deleteTransactionMutation(id).unwrap();
+        return { success: true };
+      } catch (err) {
+        console.error('Failed to delete transaction:', err);
+        return { success: false, error: err };
+      }
+    },
+    [deleteTransactionMutation],
+  );
+
+  // Update transaction category
+  const updateTransactionCategory = useCallback(
+    async (id: string, category: string) => {
+      try {
+        await updateCategoryMutation({ id, category }).unwrap();
+        return { success: true };
+      } catch (err) {
+        console.error('Failed to update transaction category:', err);
+        return { success: false, error: err };
+      }
+    },
+    [updateCategoryMutation],
+  );
+
   // Error message extraction
   const errorMessage = error
     ? 'status' in error
@@ -170,5 +206,7 @@ export function useTransactionsRedux() {
     setSortBy,
     refresh,
     retry,
+    deleteTransaction,
+    updateTransactionCategory,
   };
 }

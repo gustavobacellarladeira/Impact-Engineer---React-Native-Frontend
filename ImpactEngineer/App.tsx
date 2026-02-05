@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -22,18 +23,23 @@ const LoadingView = () => (
 
 function App() {
   return (
-    <Provider store={store}>
-      <PersistGate loading={<LoadingView />} persistor={persistor}>
-        <SafeAreaProvider>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-          <TransactionHistoryScreen />
-        </SafeAreaProvider>
-      </PersistGate>
-    </Provider>
+    <GestureHandlerRootView style={styles.gestureRoot}>
+      <Provider store={store}>
+        <PersistGate loading={<LoadingView />} persistor={persistor}>
+          <SafeAreaProvider>
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+            <TransactionHistoryScreen />
+          </SafeAreaProvider>
+        </PersistGate>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
   loading: {
     flex: 1,
     justifyContent: 'center',

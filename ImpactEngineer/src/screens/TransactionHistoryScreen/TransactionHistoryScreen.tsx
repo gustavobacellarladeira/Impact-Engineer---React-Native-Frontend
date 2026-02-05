@@ -11,23 +11,30 @@ import {
   Text,
   View,
   SectionListRenderItemInfo,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CategoryFilterBar,
+  CategoryPickerModal,
   EmptyState,
   ErrorState,
   FilterBar,
   SearchBar,
   SectionHeader,
   SortBar,
+  SwipeableTransactionItem,
   TransactionDetailModal,
-  TransactionItem,
   TransactionSkeleton,
   TRANSACTION_ITEM_HEIGHT,
 } from '../../components';
 import { useTransactionsRedux as useTransactions } from '../../hooks';
 import { colors, spacing, typography } from '../../theme';
+import {
+  triggerSuccess,
+  triggerLightImpact,
+  triggerWarning,
+} from '../../utils/haptics';
 import {
   Transaction,
   FilterButtonType,
@@ -56,10 +63,16 @@ export function TransactionHistoryScreen() {
     setSortBy,
     refresh,
     retry,
+    deleteTransaction,
+    updateTransactionCategory,
   } = useTransactions();
 
   // State for transaction detail modal
   const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+
+  // State for category picker modal
+  const [categoryPickerTransaction, setCategoryPickerTransaction] =
     useState<Transaction | null>(null);
 
   // Check if filters are active
@@ -74,15 +87,64 @@ export function TransactionHistoryScreen() {
   // Optimized key extractor
   const keyExtractor = useCallback((item: Transaction) => item.id, []);
 
+  // Handle delete transaction
+  const handleDeleteTransaction = useCallback(
+    (transaction: Transaction) => {
+      Alert.alert(
+        'Delete Transaction',
+        `Are you sure you want to delete the transaction from ${transaction.merchant}?`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              triggerWarning();
+              await deleteTransaction(transaction.id);
+            },
+          },
+        ],
+      );
+    },
+    [deleteTransaction],
+  );
+
+  // Handle categorize transaction
+  const handleCategorizeTransaction = useCallback(
+    (transaction: Transaction) => {
+      setCategoryPickerTransaction(transaction);
+    },
+    [],
+  );
+
+  // Handle category selection
+  const handleCategorySelect = useCallback(
+    async (transactionId: string, category: string) => {
+      await updateTransactionCategory(transactionId, category);
+    },
+    [updateTransactionCategory],
+  );
+
+  // Close category picker
+  const handleCloseCategoryPicker = useCallback(() => {
+    triggerLightImpact();
+    setCategoryPickerTransaction(null);
+  }, []);
+
   // Memoized render item
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<Transaction, DateSection>) => (
-      <TransactionItem
+      <SwipeableTransactionItem
         transaction={item}
         onPress={() => setSelectedTransaction(item)}
+        onDelete={handleDeleteTransaction}
+        onCategorize={handleCategorizeTransaction}
       />
     ),
-    [],
+    [handleDeleteTransaction, handleCategorizeTransaction],
   );
 
   // Render section header
@@ -119,8 +181,15 @@ export function TransactionHistoryScreen() {
 
   // Handle modal close
   const handleModalClose = useCallback(() => {
+    triggerLightImpact();
     setSelectedTransaction(null);
   }, []);
+
+  // Handle refresh with haptic feedback
+  const handleRefresh = useCallback(() => {
+    triggerSuccess();
+    refresh();
+  }, [refresh]);
 
   // Render list header (search + filters + sort)
   const ListHeader = useMemo(
@@ -225,7 +294,7 @@ export function TransactionHistoryScreen() {
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
-              onRefresh={refresh}
+              onRefresh={handleRefresh}
               tintColor={colors.primary}
               colors={[colors.primary]}
             />
@@ -249,6 +318,14 @@ export function TransactionHistoryScreen() {
         transaction={selectedTransaction}
         visible={selectedTransaction !== null}
         onClose={handleModalClose}
+      />
+
+      {/* Category Picker Modal */}
+      <CategoryPickerModal
+        transaction={categoryPickerTransaction}
+        visible={categoryPickerTransaction !== null}
+        onClose={handleCloseCategoryPicker}
+        onSelectCategory={handleCategorySelect}
       />
     </View>
   );

@@ -3,10 +3,11 @@
  * Horizontal scrollable list of category chips for filtering
  */
 
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useCallback } from 'react';
 import { StyleSheet, Text, ScrollView, Pressable } from 'react-native';
 import { CategoryFilter as CategoryFilterType } from '../../types';
 import { colors, spacing, borderRadius, typography } from '../../theme';
+import { triggerSelection } from '../../utils/haptics';
 
 interface CategoryFilterProps {
   categories: string[];
@@ -20,6 +21,14 @@ function CategoryFilterComponent({
   onCategoryChange,
 }: CategoryFilterProps) {
   const allCategories = useMemo(() => ['all', ...categories], [categories]);
+
+  const handleCategoryPress = useCallback(
+    (category: string) => {
+      triggerSelection();
+      onCategoryChange(category);
+    },
+    [onCategoryChange],
+  );
 
   return (
     <ScrollView
@@ -35,7 +44,7 @@ function CategoryFilterComponent({
           <Pressable
             key={category}
             style={[styles.chip, isActive && styles.chipActive]}
-            onPress={() => onCategoryChange(category)}
+            onPress={() => handleCategoryPress(category)}
             accessibilityRole="button"
             accessibilityLabel={`Filter by ${label}`}
             accessibilityState={{ selected: isActive }}

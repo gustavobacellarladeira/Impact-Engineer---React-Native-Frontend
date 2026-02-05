@@ -5,7 +5,7 @@
  * Supports tap to view transaction details
  */
 
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import { Transaction } from '../../types';
 import {
@@ -18,6 +18,7 @@ import {
 import { formatCurrency } from '../../utils/currency';
 import { formatDate } from '../../utils/date';
 import { getCategoryIcon } from '../Icons';
+import { triggerLightImpact } from '../../utils/haptics';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -36,10 +37,15 @@ function TransactionItemComponent({
   const amountPrefix = isIncome ? '+' : '-';
   const IconComponent = getCategoryIcon(transaction.category);
 
+  const handlePressIn = useCallback(() => {
+    triggerLightImpact();
+  }, []);
+
   return (
     <Pressable
       style={({ pressed }) => [styles.container, pressed && styles.pressed]}
       onPress={() => onPress?.(transaction)}
+      onPressIn={handlePressIn}
       accessible={true}
       accessibilityRole="button"
       accessibilityLabel={`${

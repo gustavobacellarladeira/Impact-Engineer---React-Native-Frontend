@@ -13,6 +13,7 @@ import {
   typography,
   shadows,
 } from '../../theme';
+import { triggerLightImpact, triggerSelection } from '../../utils/haptics';
 
 interface SortBarProps {
   activeSort: SortOption;
@@ -34,17 +35,23 @@ function SortBarComponent({ activeSort, onSortChange }: SortBarProps) {
 
   const handleSelect = useCallback(
     (sort: SortOption) => {
+      triggerSelection();
       onSortChange(sort);
       setModalVisible(false);
     },
     [onSortChange],
   );
 
+  const handleOpenModal = useCallback(() => {
+    triggerLightImpact();
+    setModalVisible(true);
+  }, []);
+
   return (
     <View style={styles.container}>
       <Pressable
         style={styles.sortButton}
-        onPress={() => setModalVisible(true)}
+        onPress={handleOpenModal}
         accessibilityRole="button"
         accessibilityLabel={`Sort by ${activeLabel}`}
       >

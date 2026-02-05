@@ -3,7 +3,7 @@
  * Modal displaying full transaction details when tapping a transaction
  */
 
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -23,6 +23,7 @@ import {
 } from '../../theme';
 import { formatCurrency } from '../../utils/currency';
 import { getCategoryIcon } from '../Icons';
+import { triggerLightImpact } from '../../utils/haptics';
 
 interface TransactionDetailModalProps {
   transaction: Transaction | null;
@@ -36,6 +37,11 @@ function TransactionDetailModalComponent({
   onClose,
 }: TransactionDetailModalProps) {
   const insets = useSafeAreaInsets();
+
+  const handleClose = useCallback(() => {
+    triggerLightImpact();
+    onClose();
+  }, [onClose]);
 
   if (!transaction) return null;
 
@@ -62,7 +68,7 @@ function TransactionDetailModalComponent({
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={[styles.container, { paddingBottom: insets.bottom }]}>
         {/* Header */}
@@ -70,7 +76,7 @@ function TransactionDetailModalComponent({
           <View style={styles.handleBar} />
           <Pressable
             style={styles.closeButton}
-            onPress={onClose}
+            onPress={handleClose}
             accessibilityRole="button"
             accessibilityLabel="Close"
           >

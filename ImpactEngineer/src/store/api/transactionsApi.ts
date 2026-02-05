@@ -77,9 +77,97 @@ export const transactionsApi = createApi({
       },
       providesTags: (_result, _error, id) => [{ type: 'Transaction', id }],
     }),
+
+    // Delete a transaction
+    deleteTransaction: builder.mutation<{ id: string }, string>({
+      queryFn: async (id, _api, _extraOptions, _baseQuery) => {
+        // Simulate network delay
+        await new Promise<void>(resolve => setTimeout(resolve, 300));
+        // In a real app, this would delete from the backend
+        return { data: { id } };
+      },
+      // Optimistically update the cache
+      onQueryStarted: async (id, { dispatch, queryFulfilled }) => {
+        // Optimistic update - remove from cache immediately
+        const patchResult = dispatch(
+          transactionsApi.util.updateQueryData(
+            'getTransactions',
+            undefined,
+            draft => {
+              const index = draft.findIndex(t => t.id === id);
+              if (index !== -1) {
+                draft.splice(index, 1);
+              }
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          // Revert on error
+          patchResult.undo();
+        }
+      },
+      invalidatesTags: (_result, _error, id) => [{ type: 'Transaction', id }],
+    }),
+
+    // Update transaction category
+    updateTransactionCategory: builder.mutation<
+      Transaction,
+      { id: string; category: string }
+    >({
+      queryFn: async ({ id, category }, _api, _extraOptions, _baseQuery) => {
+        // Simulate network delay
+        await new Promise<void>(resolve => setTimeout(resolve, 300));
+        // Find the transaction and update it
+        const transaction = mockTransactions.find(t => t.id === id);
+        if (!transaction) {
+          return {
+            error: {
+              status: 404,
+              data: { message: 'Transaction not found' },
+            },
+          };
+        }
+        const updatedTransaction = { ...transaction, category };
+        return { data: updatedTransaction };
+      },
+      // Optimistically update the cache
+      onQueryStarted: async (
+        { id, category },
+        { dispatch, queryFulfilled },
+      ) => {
+        // Optimistic update - update category in cache immediately
+        const patchResult = dispatch(
+          transactionsApi.util.updateQueryData(
+            'getTransactions',
+            undefined,
+            draft => {
+              const transaction = draft.find(t => t.id === id);
+              if (transaction) {
+                transaction.category = category;
+              }
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          // Revert on error
+          patchResult.undo();
+        }
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Transaction', id },
+      ],
+    }),
   }),
 });
 
 // Export hooks for usage in components
-export const { useGetTransactionsQuery, useGetTransactionByIdQuery } =
-  transactionsApi;
+export const {
+  useGetTransactionsQuery,
+  useGetTransactionByIdQuery,
+  useDeleteTransactionMutation,
+  useUpdateTransactionCategoryMutation,
+} = transactionsApi;

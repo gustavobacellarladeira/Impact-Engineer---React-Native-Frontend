@@ -1,7 +1,9 @@
 // Components barrel export
 export { TransactionItem, TRANSACTION_ITEM_HEIGHT } from './TransactionItem';
+export { SwipeableTransactionItem } from './SwipeableTransactionItem';
 export { TransactionSkeleton } from './TransactionSkeleton';
 export { TransactionDetailModal } from './TransactionDetailModal';
+export { CategoryPickerModal } from './CategoryPickerModal';
 export { FilterBar } from './FilterBar';
 export { SearchBar } from './SearchBar';
 export { SortBar } from './SortBar';

@@ -21,6 +21,7 @@ import {
   typography,
   shadows,
 } from '../../theme';
+import { triggerLightImpact } from '../../utils/haptics';
 
 interface FilterBarProps {
   activeFilter: FilterButtonType;
@@ -88,6 +89,7 @@ function AnimatedFilterButton({
 
   const handlePressIn = useCallback(() => {
     scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
+    triggerLightImpact();
   }, [scale]);
 
   const handlePressOut = useCallback(() => {

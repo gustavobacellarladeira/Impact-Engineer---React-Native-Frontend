@@ -4,7 +4,7 @@
  * Includes retry button
  */
 
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import {
   colors,
@@ -13,6 +13,7 @@ import {
   typography,
   shadows,
 } from '../../theme';
+import { triggerMediumImpact } from '../../utils/haptics';
 
 interface ErrorStateProps {
   message?: string;
@@ -23,6 +24,11 @@ function ErrorStateComponent({
   message = 'Something went wrong. Please try again.',
   onRetry,
 }: ErrorStateProps) {
+  const handleRetry = useCallback(() => {
+    triggerMediumImpact();
+    onRetry();
+  }, [onRetry]);
+
   return (
     <View style={styles.container} accessibilityRole="alert">
       <Text style={styles.emoji}>⚠️</Text>
@@ -30,7 +36,7 @@ function ErrorStateComponent({
       <Text style={styles.message}>{message}</Text>
       <TouchableOpacity
         style={styles.retryButton}
-        onPress={onRetry}
+        onPress={handleRetry}
         accessibilityRole="button"
         accessibilityLabel="Retry loading transactions"
       >
