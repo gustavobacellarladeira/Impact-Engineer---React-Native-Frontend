@@ -12,9 +12,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { store, persistor } from './ImpactEngineer/src/store';
-import { ThemeProvider, useThemeColors } from './ImpactEngineer/src/theme';
-import { BottomTabNavigator } from './ImpactEngineer/src/navigation';
+import { store, persistor } from './src/store';
+import { ThemeProvider, useThemeColors } from './src/theme';
+import { BottomTabNavigator } from './src/navigation';
 
 // Loading component for PersistGate
 const LoadingView = () => (

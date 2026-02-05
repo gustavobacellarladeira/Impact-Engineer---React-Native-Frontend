@@ -11,7 +11,11 @@ A React Native mobile application that displays a user's transaction history wit
 
 ## 🎬 Demo
 
-https://github.com/gustavobacellar/Impact-Engineer---React-Native-Frontend/raw/main/ImpactEngineer/github/video/Simulator%20Screen%20Recording%20-%20iPhone%2016%20-%202026-02-05%20at%2020.48.12.mp4
+<p align="center">
+  <img src="../github/video/demo.gif" alt="App Demo" width="280"/>
+</p>
+
+📹 [Watch full video](../github/video/Simulator%20Screen%20Recording%20-%20iPhone%2016%20-%202026-02-05%20at%2020.48.12.mp4)
 
 ---
 
