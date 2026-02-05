@@ -200,6 +200,40 @@ export const DefaultIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
   </Svg>
 );
 
+// Delete/Trash Icon
+export const DeleteIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M10 11v6M14 11v6"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Tag/Label Icon
+export const TagIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Circle cx={7} cy={7} r={1.5} fill={color} />
+  </Svg>
+);
+
 // Map category to icon
 export const getCategoryIcon = (category: string) => {
   const categoryLower = category.toLowerCase();

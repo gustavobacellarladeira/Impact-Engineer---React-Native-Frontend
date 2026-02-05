@@ -16,7 +16,7 @@ import {
 } from '../../theme';
 import { formatCurrency } from '../../utils/currency';
 import { formatDate } from '../../utils/date';
-import { getCategoryIcon } from '../Icons';
+import { getCategoryIcon, DeleteIcon, TagIcon } from '../Icons';
 import {
   triggerLightImpact,
   triggerWarning,
@@ -94,8 +94,10 @@ function SwipeableTransactionItemComponent({
             accessibilityRole="button"
             accessibilityLabel="Delete transaction"
           >
-            <Animated.View style={{ transform: [{ scale }] }}>
-              <Text style={styles.actionIcon}>🗑️</Text>
+            <Animated.View
+              style={[styles.actionContent, { transform: [{ scale }] }]}
+            >
+              <DeleteIcon size={24} color={colors.surface} />
               <Text style={styles.actionText}>Delete</Text>
             </Animated.View>
           </Pressable>
@@ -131,8 +133,10 @@ function SwipeableTransactionItemComponent({
             accessibilityRole="button"
             accessibilityLabel="Change category"
           >
-            <Animated.View style={{ transform: [{ scale }] }}>
-              <Text style={styles.actionIcon}>🏷️</Text>
+            <Animated.View
+              style={[styles.actionContent, { transform: [{ scale }] }]}
+            >
+              <TagIcon size={24} color={colors.surface} />
               <Text style={styles.actionText}>Category</Text>
             </Animated.View>
           </Pressable>
@@ -283,13 +287,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: borderRadius.lg,
   },
-  actionIcon: {
-    fontSize: 20,
-    marginBottom: spacing.xs,
+  actionContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionText: {
     color: colors.surface,
     fontSize: typography.size.xs,
     fontWeight: typography.weight.medium,
+    marginTop: spacing.xs,
   },
 });
