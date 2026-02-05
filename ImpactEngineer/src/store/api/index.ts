@@ -4,4 +4,5 @@ export {
   useGetTransactionByIdQuery,
   useDeleteTransactionMutation,
   useUpdateTransactionCategoryMutation,
+  useCreateTransactionMutation,
 } from './transactionsApi';

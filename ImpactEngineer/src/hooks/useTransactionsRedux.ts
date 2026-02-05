@@ -1,22 +1,31 @@
 /**
  * useTransactionsRedux Hook
  * RTK Query + Redux powered transaction data management
+ * Uses local persistence for created/edited/deleted transactions
  */
 
 import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  useGetTransactionsQuery,
-  useDeleteTransactionMutation,
-  useUpdateTransactionCategoryMutation,
-} from '../store/api';
+import { useGetTransactionsQuery } from '../store/api';
 import {
   setTypeFilter as setTypeFilterAction,
   setSearchQuery as setSearchQueryAction,
   setCategoryFilter as setCategoryFilterAction,
   setSortBy as setSortByAction,
+  addTransaction as addTransactionAction,
+  deleteTransaction as deleteTransactionAction,
+  undoDeleteTransaction as undoDeleteTransactionAction,
+  undoDeleteTransactions as undoDeleteTransactionsAction,
+  updateTransactionCategory as updateTransactionCategoryAction,
+  updateTransaction as updateTransactionAction,
 } from '../store/slices';
-import { selectTransactionFilters, selectIsFiltered } from '../store/selectors';
+import {
+  selectTransactionFilters,
+  selectIsFiltered,
+  selectCreatedTransactions,
+  selectDeletedTransactionIds,
+  selectModifiedTransactions,
+} from '../store/selectors';
 import {
   TransactionFilters,
   SortOption,
@@ -29,22 +38,45 @@ import { getDateSection } from '../utils/date';
 export function useTransactionsRedux() {
   const dispatch = useAppDispatch();
 
-  // RTK Query for data fetching with automatic caching
+  // RTK Query for fetching mock data (base data)
   const {
-    data: allTransactions = [],
+    data: mockTransactions = [],
     isLoading,
     isFetching,
     error,
     refetch,
   } = useGetTransactionsQuery();
 
-  // Mutation hooks for delete and update
-  const [deleteTransactionMutation] = useDeleteTransactionMutation();
-  const [updateCategoryMutation] = useUpdateTransactionCategoryMutation();
+  // Local transactions state (persisted)
+  const createdTransactions = useAppSelector(selectCreatedTransactions);
+  const deletedTransactionIds = useAppSelector(selectDeletedTransactionIds);
+  const modifiedTransactions = useAppSelector(selectModifiedTransactions);
 
   // Filters from Redux store
   const filters = useAppSelector(selectTransactionFilters);
   const isFiltered = useAppSelector(selectIsFiltered);
+
+  // Combine mock + local transactions, apply modifications and deletions
+  const allTransactions = useMemo(() => {
+    // Start with mock transactions, apply modifications and filter deletions
+    const processedMockTransactions = mockTransactions
+      .filter(t => !deletedTransactionIds.includes(t.id))
+      .map(t => {
+        const modifications = modifiedTransactions[t.id];
+        if (modifications) {
+          return { ...t, ...modifications };
+        }
+        return t;
+      });
+
+    // Add locally created transactions (already up to date)
+    return [...createdTransactions, ...processedMockTransactions];
+  }, [
+    mockTransactions,
+    createdTransactions,
+    deletedTransactionIds,
+    modifiedTransactions,
+  ]);
 
   // Filter and sort transactions (memoized)
   const transactions = useMemo(() => {
@@ -95,13 +127,7 @@ export function useTransactionsRedux() {
       sectionMap.set(sectionTitle, [...existing, transaction]);
     });
 
-    const sectionOrder = [
-      'Today',
-      'Yesterday',
-      'This Week',
-      'This Month',
-      'Earlier',
-    ];
+    const sectionOrder = ['Today', 'Yesterday', 'All'];
 
     return sectionOrder
       .filter(title => sectionMap.has(title))
@@ -156,32 +182,58 @@ export function useTransactionsRedux() {
     await refetch();
   }, [refetch]);
 
-  // Delete a transaction
+  // Delete a transaction (persisted locally)
   const deleteTransaction = useCallback(
-    async (id: string) => {
-      try {
-        await deleteTransactionMutation(id).unwrap();
-        return { success: true };
-      } catch (err) {
-        console.error('Failed to delete transaction:', err);
-        return { success: false, error: err };
-      }
+    (id: string) => {
+      dispatch(deleteTransactionAction(id));
+      return { success: true };
     },
-    [deleteTransactionMutation],
+    [dispatch],
   );
 
-  // Update transaction category
-  const updateTransactionCategory = useCallback(
-    async (id: string, category: string) => {
-      try {
-        await updateCategoryMutation({ id, category }).unwrap();
-        return { success: true };
-      } catch (err) {
-        console.error('Failed to update transaction category:', err);
-        return { success: false, error: err };
-      }
+  // Undo delete a transaction
+  const undoDeleteTransaction = useCallback(
+    (id: string) => {
+      dispatch(undoDeleteTransactionAction(id));
     },
-    [updateCategoryMutation],
+    [dispatch],
+  );
+
+  // Undo delete multiple transactions
+  const undoDeleteTransactions = useCallback(
+    (ids: string[]) => {
+      dispatch(undoDeleteTransactionsAction(ids));
+    },
+    [dispatch],
+  );
+
+  // Update transaction category (persisted locally)
+  const updateTransactionCategory = useCallback(
+    (id: string, category: string) => {
+      dispatch(updateTransactionCategoryAction({ id, category }));
+      return { success: true };
+    },
+    [dispatch],
+  );
+
+  // Update transaction fully (persisted locally)
+  const updateTransaction = useCallback(
+    (id: string, updates: Partial<Transaction>) => {
+      dispatch(updateTransactionAction({ id, updates }));
+      return { success: true };
+    },
+    [dispatch],
+  );
+
+  // Create a new transaction (persisted locally)
+  const createTransaction = useCallback(
+    (transaction: Omit<Transaction, 'id'>) => {
+      const id = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newTransaction: Transaction = { ...transaction, id };
+      dispatch(addTransactionAction(newTransaction));
+      return { success: true, data: newTransaction };
+    },
+    [dispatch],
   );
 
   // Error message extraction
@@ -207,6 +259,10 @@ export function useTransactionsRedux() {
     refresh,
     retry,
     deleteTransaction,
+    undoDeleteTransaction,
+    undoDeleteTransactions,
     updateTransactionCategory,
+    updateTransaction,
+    createTransaction,
   };
 }

@@ -13,10 +13,23 @@ import {
   SectionListRenderItemInfo,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   CategoryFilterBar,
   CategoryPickerModal,
+  CreateTransactionModal,
   EmptyState,
   ErrorState,
   FilterBar,
@@ -33,11 +46,14 @@ import {
 } from '../../components';
 import { useTransactionsRedux as useTransactions } from '../../hooks';
 import { useTheme } from '../../theme';
-import { spacing, typography } from '../../theme';
+import { spacing, typography, borderRadius, shadows } from '../../theme';
 import {
   triggerSuccess,
   triggerLightImpact,
   triggerWarning,
+  triggerMediumImpact,
+  triggerError,
+  triggerSelection,
 } from '../../utils/haptics';
 import {
   Transaction,
@@ -55,8 +71,48 @@ const SECTION_HEADER_HEIGHT = 44;
 // Undo timeout duration in milliseconds
 const UNDO_TIMEOUT = 5000;
 
+// Delete Icon for FAB
+const DeleteIcon = ({ size = 24, color = '#FFFFFF' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Close Icon for cancel selection
+const CloseIcon = ({ size = 20, color = '#FFFFFF' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M18 6L6 18M6 6l12 12"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Plus Icon for create FAB
+const PlusIcon = ({ size = 28, color = '#FFFFFF' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 5v14M5 12h14"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 export function TransactionHistoryScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const {
     transactions,
     isLoading,
@@ -72,7 +128,11 @@ export function TransactionHistoryScreen() {
     refresh,
     retry,
     deleteTransaction,
+    undoDeleteTransaction,
+    undoDeleteTransactions,
     updateTransactionCategory,
+    updateTransaction,
+    createTransaction,
   } = useTransactions();
 
   // State for transaction detail modal
@@ -83,15 +143,24 @@ export function TransactionHistoryScreen() {
   const [categoryPickerTransaction, setCategoryPickerTransaction] =
     useState<Transaction | null>(null);
 
+  // State for create transaction modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   // State for undo functionality
   const [undoTransaction, setUndoTransaction] = useState<Transaction | null>(
     null,
   );
+  const [undoBulkIds, setUndoBulkIds] = useState<string[]>([]);
   const [showUndo, setShowUndo] = useState(false);
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // State for stats panel
   const [showStats, setShowStats] = useState(false);
+
+  // State for multi-selection mode
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const fabScale = useSharedValue(0);
 
   // Check if filters are active
   const isFiltered = useMemo(
@@ -115,19 +184,24 @@ export function TransactionHistoryScreen() {
 
   // Handle delete transaction with undo support
   const handleDeleteTransaction = useCallback(
-    async (transaction: Transaction) => {
+    (transaction: Transaction) => {
       // Clear any existing undo
       clearUndoTimeout();
 
       // Trigger haptic feedback
       triggerWarning();
 
+      // Close the detail modal if this transaction was selected
+      if (selectedTransaction?.id === transaction.id) {
+        setSelectedTransaction(null);
+      }
+
       // Store transaction for undo
       setUndoTransaction(transaction);
       setShowUndo(true);
 
-      // Actually delete the transaction
-      await deleteTransaction(transaction.id);
+      // Actually delete the transaction (sync - persisted to Redux)
+      deleteTransaction(transaction.id);
 
       // Set timeout to dismiss undo toast
       undoTimeoutRef.current = setTimeout(() => {
@@ -135,7 +209,7 @@ export function TransactionHistoryScreen() {
         setUndoTransaction(null);
       }, UNDO_TIMEOUT);
     },
-    [deleteTransaction, clearUndoTimeout],
+    [deleteTransaction, clearUndoTimeout, selectedTransaction],
   );
 
   // Handle undo action - restore the transaction
@@ -144,14 +218,27 @@ export function TransactionHistoryScreen() {
       // Clear the timeout
       clearUndoTimeout();
 
-      // Refresh to restore from server
-      refresh();
+      // Undo the deletion (persisted)
+      if (undoTransaction.id === 'bulk' && undoBulkIds.length > 0) {
+        // Bulk undo
+        undoDeleteTransactions(undoBulkIds);
+        setUndoBulkIds([]);
+      } else if (undoTransaction.id !== 'bulk') {
+        undoDeleteTransaction(undoTransaction.id);
+      }
 
       // Clear undo state
       setShowUndo(false);
       setUndoTransaction(null);
+      triggerSuccess();
     }
-  }, [undoTransaction, clearUndoTimeout, refresh]);
+  }, [
+    undoTransaction,
+    undoBulkIds,
+    clearUndoTimeout,
+    undoDeleteTransaction,
+    undoDeleteTransactions,
+  ]);
 
   // Handle dismiss undo toast
   const handleDismissUndo = useCallback(() => {
@@ -181,10 +268,38 @@ export function TransactionHistoryScreen() {
 
   // Handle category selection
   const handleCategorySelect = useCallback(
-    async (transactionId: string, category: string) => {
-      await updateTransactionCategory(transactionId, category);
+    (transactionId: string, category: string) => {
+      updateTransactionCategory(transactionId, category);
+      // Update selectedTransaction if it's the one being edited
+      if (selectedTransaction?.id === transactionId) {
+        setSelectedTransaction(prev => (prev ? { ...prev, category } : null));
+      }
     },
-    [updateTransactionCategory],
+    [updateTransactionCategory, selectedTransaction],
+  );
+
+  // Handle update transaction from detail modal
+  const handleUpdateTransaction = useCallback(
+    (transactionId: string, updates: Partial<Transaction>) => {
+      updateTransaction(transactionId, updates);
+      // Update selectedTransaction to reflect changes immediately
+      if (selectedTransaction?.id === transactionId) {
+        setSelectedTransaction(prev => (prev ? { ...prev, ...updates } : null));
+      }
+    },
+    [updateTransaction, selectedTransaction],
+  );
+
+  // Handle update category from detail modal
+  const handleUpdateCategoryFromModal = useCallback(
+    (transactionId: string, category: string) => {
+      updateTransactionCategory(transactionId, category);
+      // Update selectedTransaction to reflect changes immediately
+      if (selectedTransaction?.id === transactionId) {
+        setSelectedTransaction(prev => (prev ? { ...prev, category } : null));
+      }
+    },
+    [updateTransactionCategory, selectedTransaction],
   );
 
   // Close category picker
@@ -192,6 +307,140 @@ export function TransactionHistoryScreen() {
     triggerLightImpact();
     setCategoryPickerTransaction(null);
   }, []);
+
+  // Handle show create modal
+  const handleShowCreateModal = useCallback(() => {
+    triggerLightImpact();
+    setShowCreateModal(true);
+  }, []);
+
+  // Handle close create modal
+  const handleCloseCreateModal = useCallback(() => {
+    setShowCreateModal(false);
+  }, []);
+
+  // Handle create transaction
+  const handleCreateTransaction = useCallback(
+    async (transaction: Omit<Transaction, 'id'>) => {
+      await createTransaction(transaction);
+      triggerSuccess();
+    },
+    [createTransaction],
+  );
+
+  // Handle long press to enter selection mode
+  const handleLongPress = useCallback(
+    (transaction: Transaction) => {
+      if (!isSelectionMode) {
+        triggerMediumImpact();
+        setIsSelectionMode(true);
+        setSelectedIds(new Set([transaction.id]));
+        fabScale.value = withSpring(1, { damping: 12, stiffness: 150 });
+      }
+    },
+    [isSelectionMode, fabScale],
+  );
+
+  // Handle toggle selection
+  const handleToggleSelection = useCallback(
+    (transaction: Transaction) => {
+      setSelectedIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(transaction.id)) {
+          newSet.delete(transaction.id);
+        } else {
+          newSet.add(transaction.id);
+        }
+        // Exit selection mode if no items selected
+        if (newSet.size === 0) {
+          setIsSelectionMode(false);
+          fabScale.value = withTiming(0, { duration: 200 });
+        }
+        return newSet;
+      });
+    },
+    [fabScale],
+  );
+
+  // Handle cancel selection mode
+  const handleCancelSelection = useCallback(() => {
+    triggerLightImpact();
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+    fabScale.value = withTiming(0, { duration: 200 });
+  }, [fabScale]);
+
+  // Handle select all transactions
+  const handleSelectAll = useCallback(() => {
+    triggerSelection();
+    const allIds = new Set(transactions.map(t => t.id));
+    setSelectedIds(allIds);
+  }, [transactions]);
+
+  // Check if all transactions are selected
+  const isAllSelected = useMemo(() => {
+    return transactions.length > 0 && selectedIds.size === transactions.length;
+  }, [transactions.length, selectedIds.size]);
+
+  // Handle delete selected transactions
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedIds.size === 0) return;
+
+    // Clear any existing undo
+    clearUndoTimeout();
+
+    triggerWarning();
+
+    const count = selectedIds.size;
+    const idsToDelete = Array.from(selectedIds);
+
+    // Store IDs for undo
+    setUndoBulkIds(idsToDelete);
+
+    // Delete all selected transactions (sync)
+    idsToDelete.forEach(id => deleteTransaction(id));
+
+    // Exit selection mode
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+    fabScale.value = withTiming(0, { duration: 200 });
+
+    // Show undo toast
+    setUndoTransaction({
+      id: 'bulk',
+      merchant: `${count} transactions`,
+      amount: 0,
+      type: 'expense',
+      category: '',
+      date: '',
+    } as Transaction);
+    setShowUndo(true);
+
+    // Set timeout to dismiss undo toast
+    undoTimeoutRef.current = setTimeout(() => {
+      setShowUndo(false);
+      setUndoTransaction(null);
+      setUndoBulkIds([]);
+    }, UNDO_TIMEOUT);
+  }, [selectedIds, deleteTransaction, fabScale, clearUndoTimeout]);
+
+  // Animated style for FAB
+  const fabAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scale: fabScale.value },
+        {
+          translateY: interpolate(
+            fabScale.value,
+            [0, 1],
+            [50, 0],
+            Extrapolation.CLAMP,
+          ),
+        },
+      ],
+      opacity: fabScale.value,
+    };
+  });
 
   // Memoized render item
   const renderItem = useCallback(
@@ -201,9 +450,20 @@ export function TransactionHistoryScreen() {
         onPress={() => setSelectedTransaction(item)}
         onDelete={handleDeleteTransaction}
         onCategorize={handleCategorizeTransaction}
+        onLongPress={handleLongPress}
+        isSelectionMode={isSelectionMode}
+        isSelected={selectedIds.has(item.id)}
+        onToggleSelection={handleToggleSelection}
       />
     ),
-    [handleDeleteTransaction, handleCategorizeTransaction],
+    [
+      handleDeleteTransaction,
+      handleCategorizeTransaction,
+      handleLongPress,
+      isSelectionMode,
+      selectedIds,
+      handleToggleSelection,
+    ],
   );
 
   // Render section header
@@ -356,24 +616,72 @@ export function TransactionHistoryScreen() {
             },
           ]}
         >
-          <Text style={[styles.title, { color: colors.textPrimary }]}>
-            Transactions
-          </Text>
-          <View style={styles.headerActions}>
-            <Pressable
-              style={[
-                styles.statsButton,
-                { backgroundColor: colors.primaryLight },
-              ]}
-              onPress={handleShowStats}
-              accessibilityRole="button"
-              accessibilityLabel="View stats"
-            >
-              <Text style={[styles.statsButtonText, { color: colors.primary }]}>
-                Stats
+          {isSelectionMode ? (
+            <>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={handleCancelSelection}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel selection"
+              >
+                <CloseIcon size={20} color={colors.textPrimary} />
+              </Pressable>
+              <Text
+                style={[styles.selectionTitle, { color: colors.textPrimary }]}
+              >
+                {selectedIds.size} selected
               </Text>
-            </Pressable>
-            <ThemeToggle />
+            </>
+          ) : (
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              Transactions
+            </Text>
+          )}
+          <View style={styles.headerActions}>
+            {isSelectionMode ? (
+              <Pressable
+                style={[
+                  styles.selectAllButton,
+                  {
+                    backgroundColor: isAllSelected
+                      ? colors.primary
+                      : colors.primaryLight,
+                  },
+                ]}
+                onPress={handleSelectAll}
+                accessibilityRole="button"
+                accessibilityLabel="Select all transactions"
+                disabled={isAllSelected}
+              >
+                <Text
+                  style={[
+                    styles.selectAllText,
+                    { color: isAllSelected ? colors.surface : colors.primary },
+                  ]}
+                >
+                  {isAllSelected ? 'All Selected' : 'Select All'}
+                </Text>
+              </Pressable>
+            ) : (
+              <>
+                <Pressable
+                  style={[
+                    styles.statsButton,
+                    { backgroundColor: colors.primaryLight },
+                  ]}
+                  onPress={handleShowStats}
+                  accessibilityRole="button"
+                  accessibilityLabel="View stats"
+                >
+                  <Text
+                    style={[styles.statsButtonText, { color: colors.primary }]}
+                  >
+                    Stats
+                  </Text>
+                </Pressable>
+                <ThemeToggle />
+              </>
+            )}
           </View>
         </View>
       </SafeAreaView>
@@ -420,6 +728,9 @@ export function TransactionHistoryScreen() {
         transaction={selectedTransaction}
         visible={selectedTransaction !== null}
         onClose={handleModalClose}
+        onDelete={handleDeleteTransaction}
+        onUpdateCategory={handleUpdateCategoryFromModal}
+        onUpdateTransaction={handleUpdateTransaction}
       />
 
       {/* Category Picker Modal */}
@@ -448,6 +759,47 @@ export function TransactionHistoryScreen() {
         onUndo={handleUndo}
         onDismiss={handleDismissUndo}
       />
+
+      {/* Floating Delete Button for Selection Mode */}
+      <Animated.View
+        style={[
+          styles.fab,
+          { bottom: insets.bottom + spacing.lg },
+          fabAnimatedStyle,
+        ]}
+      >
+        <Pressable
+          style={[styles.fabButton, { backgroundColor: colors.expense }]}
+          onPress={handleDeleteSelected}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete ${selectedIds.size} selected transactions`}
+        >
+          <DeleteIcon size={24} color="#FFFFFF" />
+        </Pressable>
+      </Animated.View>
+
+      {/* Floating Create Button (hidden in selection mode and when undo is showing) */}
+      {!isSelectionMode && !showUndo && (
+        <View
+          style={[styles.fabCreate, { bottom: insets.bottom + spacing.lg }]}
+        >
+          <Pressable
+            style={[styles.fabButton, { backgroundColor: colors.primary }]}
+            onPress={handleShowCreateModal}
+            accessibilityRole="button"
+            accessibilityLabel="Create new transaction"
+          >
+            <PlusIcon size={28} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      )}
+
+      {/* Create Transaction Modal */}
+      <CreateTransactionModal
+        visible={showCreateModal}
+        onClose={handleCloseCreateModal}
+        onCreateTransaction={handleCreateTransaction}
+      />
     </View>
   );
 }
@@ -468,6 +820,19 @@ const styles = StyleSheet.create({
     fontSize: typography.size.xxxl,
     fontWeight: typography.weight.bold,
   },
+  selectionTitle: {
+    fontSize: typography.size.xl,
+    fontWeight: typography.weight.semibold,
+    flex: 1,
+  },
+  cancelButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -479,6 +844,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   statsButtonText: {
+    fontSize: typography.size.sm,
+    fontWeight: typography.weight.semibold,
+  },
+  selectAllButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+  },
+  selectAllText: {
     fontSize: typography.size.sm,
     fontWeight: typography.weight.semibold,
   },
@@ -498,5 +872,23 @@ const styles = StyleSheet.create({
   },
   emptyListContent: {
     flexGrow: 1,
+  },
+  fab: {
+    position: 'absolute',
+    left: spacing.lg,
+    bottom: spacing.xxl,
+  },
+  fabButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.lg,
+  },
+  fabCreate: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.xxl,
   },
 });

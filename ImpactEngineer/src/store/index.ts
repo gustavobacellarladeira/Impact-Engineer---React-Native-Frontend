@@ -16,7 +16,7 @@ import {
 } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { filtersReducer } from './slices';
+import { filtersReducer, localTransactionsReducer } from './slices';
 import { transactionsApi } from './api';
 
 // Persist configuration
@@ -24,13 +24,14 @@ const persistConfig = {
   key: 'root',
   version: 1,
   storage: AsyncStorage,
-  whitelist: ['filters'], // Persist filters
+  whitelist: ['filters', 'localTransactions'], // Persist filters and local transactions
   blacklist: [transactionsApi.reducerPath], // Don't persist API cache
 };
 
 // Root reducer
 const rootReducer = combineReducers({
   filters: filtersReducer,
+  localTransactions: localTransactionsReducer,
   [transactionsApi.reducerPath]: transactionsApi.reducer,
 });
 

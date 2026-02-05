@@ -4,6 +4,7 @@ export { SwipeableTransactionItem } from './SwipeableTransactionItem';
 export { TransactionSkeleton } from './TransactionSkeleton';
 export { TransactionDetailModal } from './TransactionDetailModal';
 export { CategoryPickerModal } from './CategoryPickerModal';
+export { CreateTransactionModal } from './CreateTransactionModal';
 export { FilterBar } from './FilterBar';
 export { SearchBar } from './SearchBar';
 export { SortBar } from './SortBar';

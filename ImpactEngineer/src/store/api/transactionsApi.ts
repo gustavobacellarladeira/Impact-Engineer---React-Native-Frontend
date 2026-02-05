@@ -161,6 +161,61 @@ export const transactionsApi = createApi({
         { type: 'Transaction', id },
       ],
     }),
+
+    // Create a new transaction
+    createTransaction: builder.mutation<Transaction, Omit<Transaction, 'id'>>({
+      queryFn: async (newTransaction, _api, _extraOptions, _baseQuery) => {
+        // Simulate network delay
+        await new Promise<void>(resolve => setTimeout(resolve, 300));
+        // Generate a new ID
+        const id = `tx_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+        const transaction: Transaction = { ...newTransaction, id };
+        return { data: transaction };
+      },
+      // Optimistically update the cache
+      onQueryStarted: async (newTransaction, { dispatch, queryFulfilled }) => {
+        // Create a temporary ID for optimistic update
+        const tempId = `temp_${Date.now()}`;
+        const optimisticTransaction: Transaction = {
+          ...newTransaction,
+          id: tempId,
+        };
+
+        // Optimistic update - add to cache immediately
+        const patchResult = dispatch(
+          transactionsApi.util.updateQueryData(
+            'getTransactions',
+            undefined,
+            draft => {
+              draft.unshift(optimisticTransaction);
+            },
+          ),
+        );
+        try {
+          const { data: createdTransaction } = await queryFulfilled;
+          // Replace the optimistic entry with the real one
+          dispatch(
+            transactionsApi.util.updateQueryData(
+              'getTransactions',
+              undefined,
+              draft => {
+                const index = draft.findIndex(t => t.id === tempId);
+                if (index !== -1) {
+                  draft[index] = createdTransaction;
+                }
+              },
+            ),
+          );
+        } catch {
+          // Revert on error
+          patchResult.undo();
+        }
+      },
+      // Don't invalidate tags - we're using optimistic updates and mock data
+      // invalidatesTags would refetch and lose the new transaction
+    }),
   }),
 });
 
@@ -170,4 +225,5 @@ export const {
   useGetTransactionByIdQuery,
   useDeleteTransactionMutation,
   useUpdateTransactionCategoryMutation,
+  useCreateTransactionMutation,
 } = transactionsApi;

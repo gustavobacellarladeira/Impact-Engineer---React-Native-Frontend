@@ -88,11 +88,10 @@ export const getDaysDifference = (date1: Date, date2: Date): number => {
 };
 
 /**
- * Groups transactions by date section (Today, Yesterday, This Week, Earlier)
+ * Groups transactions by date section (Today, Yesterday, All)
  */
 export const getDateSection = (isoDate: string): string => {
   const date = new Date(isoDate);
-  const now = new Date();
 
   if (isToday(date)) {
     return 'Today';
@@ -102,14 +101,5 @@ export const getDateSection = (isoDate: string): string => {
     return 'Yesterday';
   }
 
-  const daysDiff = getDaysDifference(now, date);
-  if (daysDiff < 7) {
-    return 'This Week';
-  }
-
-  if (daysDiff < 30) {
-    return 'This Month';
-  }
-
-  return 'Earlier';
+  return 'All';
 };

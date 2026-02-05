@@ -186,6 +186,113 @@ export const InvestmentsIcon = ({
   </Svg>
 );
 
+// Travel Icon (Airplane)
+export const TravelIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Subscription Icon (Refresh/Recurring)
+export const SubscriptionIcon = ({
+  size = 24,
+  color = '#64748B',
+}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M23 4v6h-6M1 20v-6h6"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Salary Icon (Briefcase with money)
+export const SalaryIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x={2}
+      y={7}
+      width={20}
+      height={14}
+      rx={2}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Path
+      d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M12 11v6M9 14h6"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Freelance Icon (User with laptop)
+export const FreelanceIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx={12} cy={7} r={4} stroke={color} strokeWidth={2} />
+    <Path
+      d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M17 11l2 2 4-4"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Gift Icon (Gift box)
+export const GiftIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x={3}
+      y={8}
+      width={18}
+      height={14}
+      rx={2}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Path
+      d="M12 8v14M3 12h18"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+    />
+    <Path
+      d="M12 8a4 4 0 00-4-4c-1.5 0-3 1.5-3 3s1.5 3 3 3M12 8a4 4 0 014-4c1.5 0 3 1.5 3 3s-1.5 3-3 3"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 // Default/Other Icon (Circle with question mark)
 export const DefaultIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -234,11 +341,63 @@ export const TagIcon = ({ size = 24, color = '#64748B' }: IconProps) => (
   </Svg>
 );
 
+// All Categories Icon (Grid)
+export const AllCategoriesIcon = ({
+  size = 24,
+  color = '#64748B',
+}: IconProps) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Rect
+      x={3}
+      y={3}
+      width={7}
+      height={7}
+      rx={1.5}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Rect
+      x={14}
+      y={3}
+      width={7}
+      height={7}
+      rx={1.5}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Rect
+      x={3}
+      y={14}
+      width={7}
+      height={7}
+      rx={1.5}
+      stroke={color}
+      strokeWidth={2}
+    />
+    <Rect
+      x={14}
+      y={14}
+      width={7}
+      height={7}
+      rx={1.5}
+      stroke={color}
+      strokeWidth={2}
+    />
+  </Svg>
+);
+
 // Map category to icon
 export const getCategoryIcon = (category: string) => {
   const categoryLower = category.toLowerCase();
 
-  if (categoryLower.includes('food') || categoryLower.includes('drink')) {
+  if (categoryLower === 'all' || categoryLower === 'all categories') {
+    return AllCategoriesIcon;
+  }
+  if (
+    categoryLower.includes('food') ||
+    categoryLower.includes('drink') ||
+    categoryLower.includes('dining')
+  ) {
     return FoodIcon;
   }
   if (categoryLower.includes('grocer')) {
@@ -267,6 +426,21 @@ export const getCategoryIcon = (category: string) => {
   }
   if (categoryLower.includes('invest')) {
     return InvestmentsIcon;
+  }
+  if (categoryLower.includes('travel')) {
+    return TravelIcon;
+  }
+  if (categoryLower.includes('subscription')) {
+    return SubscriptionIcon;
+  }
+  if (categoryLower.includes('salary')) {
+    return SalaryIcon;
+  }
+  if (categoryLower.includes('freelance')) {
+    return FreelanceIcon;
+  }
+  if (categoryLower.includes('gift')) {
+    return GiftIcon;
   }
 
   return DefaultIcon;

@@ -1,11 +1,13 @@
 /**
  * SwipeableTransactionItem Component
  * Transaction item with swipe actions for delete and categorize
+ * Supports multi-selection mode with long press
  */
 
 import React, { memo, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import Svg, { Path } from 'react-native-svg';
 import { Transaction } from '../../types';
 import { useTheme } from '../../theme/ThemeContext';
 import { spacing, typography, borderRadius, shadows } from '../../theme';
@@ -16,16 +18,34 @@ import {
   triggerLightImpact,
   triggerWarning,
   triggerSelection,
+  triggerMediumImpact,
 } from '../../utils/haptics';
 
 // Fixed height for getItemLayout optimization
 export const TRANSACTION_ITEM_HEIGHT = 80;
+
+// Checkbox Icon
+const CheckIcon = ({ size = 20, color = '#FFFFFF' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M20 6L9 17l-5-5"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
 
 interface SwipeableTransactionItemProps {
   transaction: Transaction;
   onPress?: (transaction: Transaction) => void;
   onDelete?: (transaction: Transaction) => void;
   onCategorize?: (transaction: Transaction) => void;
+  onLongPress?: (transaction: Transaction) => void;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (transaction: Transaction) => void;
 }
 
 function SwipeableTransactionItemComponent({
@@ -33,6 +53,10 @@ function SwipeableTransactionItemComponent({
   onPress,
   onDelete,
   onCategorize,
+  onLongPress,
+  isSelectionMode = false,
+  isSelected = false,
+  onToggleSelection,
 }: SwipeableTransactionItemProps) {
   const { colors } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
@@ -44,6 +68,20 @@ function SwipeableTransactionItemComponent({
   const handlePressIn = useCallback(() => {
     triggerLightImpact();
   }, []);
+
+  const handleLongPress = useCallback(() => {
+    triggerMediumImpact();
+    onLongPress?.(transaction);
+  }, [onLongPress, transaction]);
+
+  const handlePress = useCallback(() => {
+    if (isSelectionMode) {
+      triggerSelection();
+      onToggleSelection?.(transaction);
+    } else {
+      onPress?.(transaction);
+    }
+  }, [isSelectionMode, onToggleSelection, onPress, transaction]);
 
   const handleDelete = useCallback(() => {
     triggerWarning();
@@ -145,35 +183,66 @@ function SwipeableTransactionItemComponent({
     [handleCategorize, colors.primary],
   );
 
+  // In selection mode, don't render swipe actions
+  const swipeRightActions = isSelectionMode ? undefined : renderRightActions;
+  const swipeLeftActions = isSelectionMode ? undefined : renderLeftActions;
+
   return (
     <Swipeable
       ref={swipeableRef}
-      renderRightActions={renderRightActions}
-      renderLeftActions={renderLeftActions}
-      rightThreshold={40}
-      leftThreshold={40}
+      renderRightActions={swipeRightActions}
+      renderLeftActions={swipeLeftActions}
+      rightThreshold={80}
+      leftThreshold={80}
       overshootRight={false}
       overshootLeft={false}
-      friction={2}
+      friction={2.5}
       onSwipeableOpen={handleSwipeOpen}
+      enabled={!isSelectionMode}
     >
       <Pressable
         style={({ pressed }) => [
           styles.container,
           { backgroundColor: colors.surface },
           pressed && styles.pressed,
+          isSelected && {
+            backgroundColor: colors.primaryLight + '30',
+            borderColor: colors.primary,
+            borderWidth: 2,
+          },
         ]}
-        onPress={() => onPress?.(transaction)}
+        onPress={handlePress}
+        onLongPress={handleLongPress}
         onPressIn={handlePressIn}
+        delayLongPress={400}
         accessible={true}
         accessibilityRole="button"
         accessibilityLabel={`${
           transaction.merchant
         }, ${amountPrefix}${formatCurrency(Math.abs(transaction.amount))}, ${
           transaction.category
-        }`}
-        accessibilityHint="Double tap to view details. Swipe left to delete, swipe right to change category."
+        }${isSelected ? ', selected' : ''}`}
+        accessibilityHint={
+          isSelectionMode
+            ? 'Tap to toggle selection'
+            : 'Double tap to view details. Long press to select. Swipe left to delete, swipe right to change category.'
+        }
       >
+        {/* Selection Checkbox */}
+        {isSelectionMode && (
+          <View
+            style={[
+              styles.checkbox,
+              {
+                backgroundColor: isSelected ? colors.primary : 'transparent',
+                borderColor: isSelected ? colors.primary : colors.border,
+              },
+            ]}
+          >
+            {isSelected && <CheckIcon size={16} color="#FFFFFF" />}
+          </View>
+        )}
+
         {/* Category Icon */}
         <View
           style={[
@@ -239,6 +308,15 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
     transform: [{ scale: 0.98 }],
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
   },
   iconContainer: {
     width: 44,
