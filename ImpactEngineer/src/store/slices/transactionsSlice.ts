@@ -4,7 +4,12 @@
  */
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TransactionFilters, SortOption, CategoryFilter } from '../../types';
+import {
+  TransactionFilters,
+  SortOption,
+  CategoryFilter,
+  DateRangeFilter,
+} from '../../types';
 
 interface FiltersState {
   filters: TransactionFilters;
@@ -16,6 +21,7 @@ const initialState: FiltersState = {
     searchQuery: '',
     category: 'all',
     sortBy: 'date_desc',
+    dateRange: 'all',
   },
 };
 
@@ -38,6 +44,9 @@ const filtersSlice = createSlice({
     setSortBy: (state, action: PayloadAction<SortOption>) => {
       state.filters.sortBy = action.payload;
     },
+    setDateRange: (state, action: PayloadAction<DateRangeFilter>) => {
+      state.filters.dateRange = action.payload;
+    },
     resetFilters: state => {
       state.filters = initialState.filters;
     },
@@ -49,6 +58,7 @@ export const {
   setSearchQuery,
   setCategoryFilter,
   setSortBy,
+  setDateRange,
   resetFilters,
 } = filtersSlice.actions;
 

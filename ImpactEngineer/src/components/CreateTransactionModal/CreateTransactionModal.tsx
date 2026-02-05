@@ -119,6 +119,30 @@ function CreateTransactionModalComponent({
     setCategory(cat);
   }, []);
 
+  // Format amount with proper currency handling
+  const handleAmountChange = useCallback((text: string) => {
+    // Remove non-numeric characters except decimal
+    const cleanedText = text.replace(/[^0-9.]/g, '');
+
+    // Handle multiple decimals - keep only first
+    const parts = cleanedText.split('.');
+    let formattedText = parts[0];
+    if (parts.length > 1) {
+      // Limit to 2 decimal places
+      formattedText += '.' + parts[1].slice(0, 2);
+    }
+
+    // Add thousands separators for display
+    if (formattedText.length > 0) {
+      const [intPart, decPart] = formattedText.split('.');
+      const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      formattedText =
+        decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+    }
+
+    setAmount(formattedText);
+  }, []);
+
   const isFormValid = merchant.trim().length > 0 && amount.trim().length > 0;
 
   return (
@@ -287,7 +311,7 @@ function CreateTransactionModalComponent({
                 <TextInput
                   style={[styles.amountInput, { color: colors.textPrimary }]}
                   value={amount}
-                  onChangeText={setAmount}
+                  onChangeText={handleAmountChange}
                   placeholder="0.00"
                   placeholderTextColor={colors.textHint}
                   keyboardType="decimal-pad"

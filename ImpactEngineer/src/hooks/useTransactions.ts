@@ -51,6 +51,7 @@ export function useTransactions(): UseTransactionsReturn {
     searchQuery: '',
     category: 'all',
     sortBy: 'date_desc',
+    dateRange: 'all',
   });
 
   // Debounce search query to prevent excessive API calls

@@ -27,6 +27,7 @@ export interface TransactionFilters {
   searchQuery: string;
   category: CategoryFilter;
   sortBy: SortOption;
+  dateRange: DateRangeFilter;
 }
 
 export interface TransactionApiResponse {
@@ -36,6 +37,8 @@ export interface TransactionApiResponse {
 }
 
 export type FilterButtonType = 'all' | 'income' | 'expense';
+
+export type DateRangeFilter = 'all' | 'today' | 'week' | 'month';
 
 export interface FilterOption {
   key: FilterButtonType;

@@ -12,6 +12,7 @@ import {
   setSearchQuery as setSearchQueryAction,
   setCategoryFilter as setCategoryFilterAction,
   setSortBy as setSortByAction,
+  setDateRange as setDateRangeAction,
   addTransaction as addTransactionAction,
   deleteTransaction as deleteTransactionAction,
   undoDeleteTransaction as undoDeleteTransactionAction,
@@ -32,8 +33,35 @@ import {
   CategoryFilter,
   DateSection,
   Transaction,
+  DateRangeFilter,
 } from '../types';
 import { getDateSection } from '../utils/date';
+
+// Helper function to check if date is within range
+function isDateInRange(dateStr: string, range: DateRangeFilter): boolean {
+  if (range === 'all') return true;
+
+  const date = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  switch (range) {
+    case 'today':
+      return date >= today;
+    case 'week': {
+      const weekAgo = new Date(today);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return date >= weekAgo;
+    }
+    case 'month': {
+      const monthAgo = new Date(today);
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return date >= monthAgo;
+    }
+    default:
+      return true;
+  }
+}
 
 export function useTransactionsRedux() {
   const dispatch = useAppDispatch();
@@ -96,6 +124,11 @@ export function useTransactionsRedux() {
     if (filters.searchQuery.trim()) {
       const query = filters.searchQuery.toLowerCase().trim();
       result = result.filter(t => t.merchant.toLowerCase().includes(query));
+    }
+
+    // Filter by date range
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      result = result.filter(t => isDateInRange(t.date, filters.dateRange));
     }
 
     // Sort
@@ -168,6 +201,13 @@ export function useTransactionsRedux() {
   const setSortBy = useCallback(
     (sort: SortOption) => {
       dispatch(setSortByAction(sort));
+    },
+    [dispatch],
+  );
+
+  const setDateRange = useCallback(
+    (range: DateRangeFilter) => {
+      dispatch(setDateRangeAction(range));
     },
     [dispatch],
   );
@@ -256,6 +296,7 @@ export function useTransactionsRedux() {
     setSearchQuery,
     setCategoryFilter: setCategoryFilterFn,
     setSortBy,
+    setDateRange,
     refresh,
     retry,
     deleteTransaction,

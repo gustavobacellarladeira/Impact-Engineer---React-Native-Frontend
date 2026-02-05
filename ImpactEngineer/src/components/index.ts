@@ -14,5 +14,8 @@ export { EmptyState } from './EmptyState';
 export { ErrorState } from './ErrorState';
 export { ThemeToggle } from './ThemeToggle';
 export { UndoToast } from './UndoToast';
+export { SuccessToast } from './SuccessToast';
 export { StatsPanel } from './StatsPanel';
+export { BalanceSummary } from './BalanceSummary';
+export { DateFilterBar, type DateRange } from './DateFilterBar';
 export * from './Icons';

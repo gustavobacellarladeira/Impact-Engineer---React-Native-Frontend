@@ -223,6 +223,30 @@ function TransactionDetailModalComponent({
     [isEditMode, transaction, onUpdateCategory],
   );
 
+  // Format amount with proper currency handling
+  const handleAmountChange = useCallback((text: string) => {
+    // Remove non-numeric characters except decimal
+    const cleanedText = text.replace(/[^0-9.]/g, '');
+
+    // Handle multiple decimals - keep only first
+    const parts = cleanedText.split('.');
+    let formattedText = parts[0];
+    if (parts.length > 1) {
+      // Limit to 2 decimal places
+      formattedText += '.' + parts[1].slice(0, 2);
+    }
+
+    // Add thousands separators for display
+    if (formattedText.length > 0) {
+      const [intPart, decPart] = formattedText.split('.');
+      const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      formattedText =
+        decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+    }
+
+    setEditAmount(formattedText);
+  }, []);
+
   if (!transaction) return null;
 
   const isIncome = isEditMode
@@ -476,7 +500,7 @@ function TransactionDetailModalComponent({
                     <TextInput
                       style={[styles.amountInput, { color: amountColor }]}
                       value={editAmount}
-                      onChangeText={setEditAmount}
+                      onChangeText={handleAmountChange}
                       keyboardType="decimal-pad"
                       placeholder="0.00"
                       placeholderTextColor={colors.textHint}

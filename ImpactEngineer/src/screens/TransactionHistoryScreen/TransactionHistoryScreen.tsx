@@ -27,6 +27,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {
+  BalanceSummary,
   CategoryFilterBar,
   CategoryPickerModal,
   CreateTransactionModal,
@@ -41,6 +42,7 @@ import {
   TransactionSkeleton,
   ThemeToggle,
   UndoToast,
+  SuccessToast,
   StatsPanel,
   TRANSACTION_ITEM_HEIGHT,
 } from '../../components';
@@ -156,6 +158,9 @@ export function TransactionHistoryScreen() {
 
   // State for stats panel
   const [showStats, setShowStats] = useState(false);
+
+  // State for success toast
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // State for multi-selection mode
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -286,6 +291,8 @@ export function TransactionHistoryScreen() {
       if (selectedTransaction?.id === transactionId) {
         setSelectedTransaction(prev => (prev ? { ...prev, ...updates } : null));
       }
+      triggerSuccess();
+      setSuccessMessage('Transaction updated');
     },
     [updateTransaction, selectedTransaction],
   );
@@ -298,6 +305,8 @@ export function TransactionHistoryScreen() {
       if (selectedTransaction?.id === transactionId) {
         setSelectedTransaction(prev => (prev ? { ...prev, category } : null));
       }
+      triggerSuccess();
+      setSuccessMessage('Category updated');
     },
     [updateTransactionCategory, selectedTransaction],
   );
@@ -324,6 +333,7 @@ export function TransactionHistoryScreen() {
     async (transaction: Omit<Transaction, 'id'>) => {
       await createTransaction(transaction);
       triggerSuccess();
+      setSuccessMessage('Transaction created successfully');
     },
     [createTransaction],
   );
@@ -510,10 +520,17 @@ export function TransactionHistoryScreen() {
     refresh();
   }, [refresh]);
 
-  // Render list header (search + filters + sort)
+  // Render list header (balance + search + filters + sort)
   const ListHeader = useMemo(
     () => (
       <View>
+        {/* Balance Summary - shows net balance at the top */}
+        {!isLoading && transactions.length > 0 && (
+          <BalanceSummary
+            transactions={transactions}
+            onPress={handleShowStats}
+          />
+        )}
         <SearchBar value={filters.searchQuery} onChangeText={setSearchQuery} />
         <FilterBar
           activeFilter={filters.type}
@@ -549,8 +566,10 @@ export function TransactionHistoryScreen() {
       handleFilterChange,
       handleCategoryChange,
       handleSortChange,
+      handleShowStats,
       isLoading,
       transactions.length,
+      transactions,
       colors.textSecondary,
     ],
   );
@@ -663,24 +682,7 @@ export function TransactionHistoryScreen() {
                 </Text>
               </Pressable>
             ) : (
-              <>
-                <Pressable
-                  style={[
-                    styles.statsButton,
-                    { backgroundColor: colors.primaryLight },
-                  ]}
-                  onPress={handleShowStats}
-                  accessibilityRole="button"
-                  accessibilityLabel="View stats"
-                >
-                  <Text
-                    style={[styles.statsButtonText, { color: colors.primary }]}
-                  >
-                    Stats
-                  </Text>
-                </Pressable>
-                <ThemeToggle />
-              </>
+              <ThemeToggle />
             )}
           </View>
         </View>
@@ -701,6 +703,8 @@ export function TransactionHistoryScreen() {
           ListHeaderComponent={ListHeader}
           ListEmptyComponent={renderEmptyComponent}
           stickySectionHeadersEnabled={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -758,6 +762,13 @@ export function TransactionHistoryScreen() {
         }
         onUndo={handleUndo}
         onDismiss={handleDismissUndo}
+      />
+
+      {/* Success Toast */}
+      <SuccessToast
+        visible={!!successMessage}
+        message={successMessage || ''}
+        onDismiss={() => setSuccessMessage(null)}
       />
 
       {/* Floating Delete Button for Selection Mode */}
@@ -837,15 +848,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  statsButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
-  },
-  statsButtonText: {
-    fontSize: typography.size.sm,
-    fontWeight: typography.weight.semibold,
   },
   selectAllButton: {
     paddingHorizontal: spacing.md,
