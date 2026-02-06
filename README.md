@@ -287,14 +287,20 @@ npm test -- --watch
 
 ## 🧪 Testing
 
-Unit tests are provided for:
+**254 tests** across **20 test suites** with **~36% line coverage**:
 
-| Test Suite             | Coverage                                              |
-| ---------------------- | ----------------------------------------------------- |
-| **Currency utilities** | Formatting, signs, edge cases, negative values        |
-| **Date utilities**     | Today/yesterday detection, date differences, grouping |
-| **useDebounce hook**   | Debounce behavior, timing verification                |
-| **Mock data**          | Structure validation, transaction types               |
+| Test Suite                | Coverage                                              |
+| ------------------------- | ----------------------------------------------------- |
+| **Currency utilities**    | Formatting, signs, edge cases, negative values        |
+| **Date utilities**        | Today/yesterday detection, date differences, grouping |
+| **useDebounce hook**      | Debounce behavior, timing verification                |
+| **Mock data**             | Structure validation, transaction types               |
+| **Icons (Category + Nav)**| All category icons, navigation icons, getCategoryIcon |
+| **Redux Slices**          | Filters slice, local transactions slice               |
+| **Selectors**             | Filter selectors, transaction selectors               |
+| **Components**            | TransactionItem, SearchBar, SortBar, FilterBar, etc.  |
+| **Theme**                 | Light/dark colors, typography, spacing                |
+| **Navigation**            | BottomTabNavigator, screen rendering                  |
 
 Run tests with coverage:
 
