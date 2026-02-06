@@ -12,10 +12,10 @@ A React Native mobile application that displays a user's transaction history wit
 ## 🎬 Demo
 
 <p align="center">
-  <img src="../github/video/demo.gif" alt="App Demo" width="280"/>
+  <img src="./github/video/demo.gif" alt="App Demo" width="280"/>
 </p>
 
-📹 [Watch full video](../github/video/Simulator%20Screen%20Recording%20-%20iPhone%2016%20-%202026-02-05%20at%2020.48.12.mp4)
+📹 [Watch full video](./github/video/Simulator%20Screen%20Recording%20-%20iPhone%2016%20-%202026-02-05%20at%2020.48.12.mp4)
 
 ---
 
